@@ -16,9 +16,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
+// 
 // See http://www.gnu.org/licenses/gpl.txt for more details.
-//
+// 
 ////////////////////////////////////////////////////////////////////////
 // Author       : Aaron Clauset  (aaron@cs.unm.edu)				//
 // Location     : U. Michigan, U. New Mexico						//
@@ -26,7 +26,7 @@
 // Collaborators: Dr. Cris Moore (moore@cs.unm.edu)				//
 //              : Dr. Mark Newman (mejn@umich.edu)				//
 ////////////////////////////////////////////////////////////////////////
-using namespace std;
+
 #if !defined(TUPLE_INCLUDED)
 #define TUPLE_INCLUDED
 struct tuple {
@@ -46,7 +46,7 @@ struct tuple {
 	data in constant O(1) time, I use to tricky tactic of having elements in an array-
 	based heap only contain addresses to the data, rather than the data itself. In this
 	manner, an external program may freely modify an element of the heap, given that it
-	possesses a pointer to said element (in an array-based heap, the addresses and the
+	possesses a pointer to said element (in an array-based heap, the addresses and the 
 	value in that address are not bound and thus may change during the heapify() operation).
 */
 
@@ -68,12 +68,12 @@ private:
 	int		parent  (int i);		// returns index of parent
 	void		grow();				// increase size of array A
 	void		shrink();				// decrease size of array A
-
+  
 public:
 	maxheap();					// default constructor
 	maxheap(int size);				// default constructor
 	~maxheap();					// default destructor
-
+	
 	int		heapSize();							// returns heaplimit value
 	bool		heapIsEmpty();							// returns isempty value
 	tuple	*insertItem(const tuple newData);			// heap-inserts newData, returns the address of it
@@ -84,9 +84,9 @@ public:
 	void		updateItem(tuple *address, tuple newData);   // updates the value of the tuple at address
 	void		updateItem(tuple *address, double newStored);// update only the stored value of tuple at address
 	void		deleteItem(tuple *address);				// remove an item from the heap
-	int		returnArraysize();						//
-	int		returnHeaplimit();						//
-
+	int		returnArraysize();						// 
+	int		returnHeaplimit();						// 
+	
 };
 
 // ------------------------------------------------------------------------------------
@@ -96,32 +96,32 @@ public:
 maxheap::maxheap() {
 	tuple *newtuple;
 	heaplimit = 1;							// first free location is A[1]
-	arraysize = heapmin+1;					//
+	arraysize = heapmin+1;					// 
 	isempty   = true;						// heap is initially empty
 	A = new hnode [arraysize];				// allocate array for heap
 	for (int i=0; i<arraysize; i++) {			// initialize heap values
-		newtuple = new tuple;				//
-		A[i].d = newtuple;					//
+		newtuple = new tuple;				// 
+		A[i].d = newtuple;					// 
 		A[i].d->m = -4294967296.0;			// a very negative value; unlikely to be a valid dQ
-		A[i].d->i = 0;						//
-		A[i].d->j = 0;						//
-		A[i].d->k = i;						//
+		A[i].d->i = 0;						// 
+		A[i].d->j = 0;						// 
+		A[i].d->k = i;						// 
 	}
 }
 
 maxheap::maxheap(int size) {
 	tuple *newtuple;
 	heaplimit = 1;							// first free location is A[1]
-	arraysize = size+1;						//
+	arraysize = size+1;						// 
 	isempty   = true;						// heap is initially empty
 	A = new hnode [arraysize];				// allocate array for heap
 	for (int i=0; i<arraysize; i++) {			// initialize heap values
-		newtuple = new tuple;				//
-		A[i].d = newtuple;					//
+		newtuple = new tuple;				// 
+		A[i].d = newtuple;					// 
 		A[i].d->m = -4294967296.0;			// a very negative value; unlikely to be a valid dQ
-		A[i].d->i = 0;						//
-		A[i].d->j = 0;						//
-		A[i].d->k = i;						//
+		A[i].d->i = 0;						// 
+		A[i].d->j = 0;						// 
+		A[i].d->k = i;						// 
 	}
 }
 
@@ -140,9 +140,9 @@ tuple maxheap::popMaximum() {				// O(log k) time
 // Return Maximum --------------------------------------------------------------------
 tuple maxheap::returnMaximum() {			// O(1) time
 	tuple temp;
-	temp.m = A[1].d->m;					//
-	temp.i = A[1].d->i;					//
-	temp.j = A[1].d->j;					//
+	temp.m = A[1].d->m;					// 
+	temp.i = A[1].d->i;					// 
+	temp.j = A[1].d->j;					// 
 	temp.k = A[1].d->k;					// grab A's data
 	return temp;
 }
@@ -158,24 +158,24 @@ int maxheap::downsift(int index) {			// O(log k) time
 	int R		= right(index);
 	int swap;
 	tuple* temp;
-
+	
 	while (!stopFlag) {
 		// check that both children are within the array boundaries
 		if ((L < heaplimit) && (R < heaplimit)) {
 			if (A[L].d->m > A[R].d->m) { swap = L; } else { swap = R; } // first choose larger of the children
 		} else { if (L < heaplimit) { swap = L; } else { break; } }		// only one child to consider
-
+		
 		// now decide if need to exchange A[index] with A[swap]
 		if (A[index].d->m < A[swap].d->m) {
 			temp          = A[index].d;   // exchange pointers A[index] and A[swap]
-			A[index].d    = A[swap].d;    //
+			A[index].d    = A[swap].d;    // 
 			A[index].d->k = index;		// note A[index].d's change of array location
-			A[swap].d     = temp;		//
+			A[swap].d     = temp;		// 
 			A[swap].d->k  = swap;		// note A[swap].d's change in array location
-
+			
 			index = swap;				// update indices for next pass
-			L     = left(index);		//
-			R     = right(index);		//
+			L     = left(index);		// 
+			R     = right(index);		// 			
 		} else { stopFlag = true; }
 	}
 	return index;						// return the new index location of downsifted element
@@ -189,13 +189,13 @@ int maxheap::upsift(int index) {			// O(log k) time
 		// decide if A[index] needs to move up in tree
 		if ((P > 0) && (A[index].d->m > A[P].d->m)) {
 			temp          = A[index].d;   // exchange A[index] and A[P]
-			A[index].d    = A[P].d;		//
+			A[index].d    = A[P].d;		// 
 			A[index].d->k = index;		// note A[index].d's change of array location
-			A[P].d        = temp;		//
+			A[P].d        = temp;		// 
 			A[P].d->k     = P;			// note A[P].d's change of array location
-
+			
 			index = P;				// update indices for next pass
-			P     = parent(index);		//
+			P     = parent(index);		// 
 		} else { stopFlag = true; }
 	}
 	return index;
@@ -209,19 +209,19 @@ int  maxheap::parent(int index) { return (int)index/2; }
 void maxheap::grow() {								// O(k) time
 	tuple	*newtuple;
 	hnode	*B;									// scratch space for expansion of A
-	B = new hnode [arraysize];						//
+	B = new hnode [arraysize];						// 
 	for (int i=0; i<arraysize; i++) { B[i].d = A[i].d; }   // copy A into B
 	delete [] A;									// delete old array of addresses
 	A = new hnode [2*arraysize];						// grow A by factor of 2
 	for (int i=0; i<arraysize; i++) { A[i].d = B[i].d; }   // copy B into first half of A
 	for (int i=arraysize; i<(2*arraysize); i++) {		// initialize new heap values
-		newtuple  = new tuple;						//
-		A[i].d    = newtuple;						//
-		A[i].d->m = -4294967296.0;					//
-		A[i].d->i = 0;								//
-		A[i].d->j = 0;								//
-		A[i].d->k = i;								//
-	}
+		newtuple  = new tuple;						// 
+		A[i].d    = newtuple;						// 
+		A[i].d->m = -4294967296.0;					// 
+		A[i].d->i = 0;								// 
+		A[i].d->j = 0;								// 
+		A[i].d->k = i;								// 
+	}										 
 	delete [] B;									// delete scratch space B
 	arraysize = 2*arraysize;							// update size of array
 	return;
@@ -230,19 +230,19 @@ void maxheap::grow() {								// O(k) time
 void maxheap::shrink() {								// O(k) time
 	tuple	*newtuple;
 	hnode	*B;									// scratch space for contraction of A
-	B = new hnode [heaplimit];						//
+	B = new hnode [heaplimit];						// 
 	for (int i=0; i<heaplimit; i++) { B[i].d = A[i].d; }   // copy A into B
 	delete [] A;									// delete old array of addresses
 	A = new hnode [arraysize/2];						// shrink A by factor of 2
 	for (int i=0; i<heaplimit; i++) { A[i].d = B[i].d; }   // copy B into A
 	for (int i=heaplimit; i<(arraysize/2); i++) {		// initialize new heap values
-		newtuple  = new tuple;						//
-		A[i].d    = newtuple;						//
-		A[i].d->m = -4294967296.0;					//
-		A[i].d->i = 0;								//
-		A[i].d->j = 0;								//
-		A[i].d->k = i;								//
-	}
+		newtuple  = new tuple;						// 
+		A[i].d    = newtuple;						// 
+		A[i].d->m = -4294967296.0;					// 
+		A[i].d->i = 0;								// 
+		A[i].d->j = 0;								// 
+		A[i].d->k = i;								// 
+	}										 
 	delete [] B;									// delete scratch space B
 	arraysize = arraysize/2;							// update size of array
 	return;
@@ -255,16 +255,16 @@ tuple* maxheap::insertItem(const tuple newData) {			// O(log k) time
 	tuple *pointer;
 	if (heaplimit >= (arraysize-1)) { grow(); }  // if heap is full, grow by factor of 2
 
-	index		= heaplimit;			//
+	index		= heaplimit;			// 
 	A[index].d->m  = newData.m;			// copy newData onto the bottom of the heap
-	A[index].d->i  = newData.i;			//
-	A[index].d->j  = newData.j;			//
+	A[index].d->i  = newData.i;			// 
+	A[index].d->j  = newData.j;			// 
 	A[index].d->k  = index;				//
 	pointer		= A[index].d;			// store pointer to container
 	heaplimit++;						// note the larger heap
 	upsift(index);						// upsift new item up to proper spot
 	if  (heaplimit > 1) { isempty = false; }
-
+	
 	return pointer;
 }
 
@@ -292,20 +292,20 @@ void maxheap::deleteItem(tuple *address) {
 
 	if (heaplimit==2) {						// check if deleting last item in heap
 		A[1].d->m		= -4294967296.0;		// zero out root data
-		A[1].d->i		= 0;					//
-		A[1].d->j		= 0;					//
-		A[1].d->k		= 1;					//
+		A[1].d->i		= 0;					// 
+		A[1].d->j		= 0;					// 
+		A[1].d->k		= 1;					// 
 		isempty		= true;				// note the heap's emptiness
 		heaplimit--;						// decrement size of heap to empty
 	} else {
 		A[index].d->m  = -4294967296.0;		// zero out the deleted item's data
-		A[index].d->i	= 0;					//
-		A[index].d->j  = 0;					//
+		A[index].d->i	= 0;					// 
+		A[index].d->j  = 0;					// 
 		swap			= A[index].d;			// swap this element with item at end of heap
-		A[index].d	= A[small].d;			//
-		A[small].d	= swap;				//
+		A[index].d	= A[small].d;			// 
+		A[small].d	= swap;				// 
 		A[index].d->k  = index;				// note the change in locations
-		A[small].d->k  = small;				//
+		A[small].d->k  = small;				// 
 		heaplimit--;						// note change in heap size
 		downsift(index);					// downsift moved element to new location; O(log k)
 		if ((heaplimit/2 > heapmin) && (heaplimit == (arraysize/2))) { shrink(); } // shrink by factor of 2 if necessary

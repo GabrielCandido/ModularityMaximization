@@ -16,9 +16,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
+// 
 // See http://www.gnu.org/licenses/gpl.txt for more details.
-//
+// 
 ////////////////////////////////////////////////////////////////////////
 // Author       : Aaron Clauset  (aaron@cs.unm.edu)				//
 // Location     : U. Michigan, U. New Mexico						//
@@ -54,13 +54,13 @@ public:
 	int		key;					// binary-tree key
 	double    stored;				// additional stored value (associated with key)
 	tuple	*heap_ptr;			// pointer to element's location in vektor max-heap
-
+	
 	bool		color;				// F: BLACK
 								// T: RED
 	element   *parent;				// pointer to parent node
 	element   *left;				// pointer for left subtree
 	element   *right;				// pointer for right subtree
-
+	
 	element(); ~element();
 };
 element::element()  {    key = 0; stored = -4294967296.0; color = false;
@@ -76,7 +76,7 @@ element::~element() {}
 	which is potentially very slow.
 
 	Both the red-black balanced binary tree and the max-heap implementations are custom-jobs. Note
-	that the key=0 is assumed to be a special value, and thus you cannot insert such an item.
+	that the key=0 is assumed to be a special value, and thus you cannot insert such an item. 
 	Beware of this limitation.
 */
 
@@ -97,7 +97,7 @@ private:
 	void		deleteSubTree(element *z);					// delete subtree rooted at z
 	element   *returnMinKey(element *z);					// returns minimum of subtree rooted at z
 	element   *returnSuccessor(element *z);					// returns successor of z's key
-
+	
 public:
 	vektor(int size); ~vektor();							// default constructor/destructor
 
@@ -114,8 +114,8 @@ public:
 
 	void		printTree();								// displays tree (in-order traversal)
 	void		printHeap();								// displays heap
-	int		returnArraysize();							//
-	int		returnHeaplimit();							//
+	int		returnArraysize();							// 
+	int		returnHeaplimit();							// 
 
 };
 
@@ -169,7 +169,7 @@ element* vektor::findItem(const int searchKey) {
 		if (searchKey < current->key) {							// left-or-right?
 			if (current->left  != leaf) { current = current->left;  }	// try moving down-left
 			else { return NULL; }								//   failure; bail out
-		} else {												//
+		} else {												// 
 			if (searchKey > current->key) {							// left-or-right?
 				if (current->right  != leaf) { current = current->right;  }	// try moving down-left
 				else { return NULL; }							//   failure; bail out
@@ -183,7 +183,7 @@ element* vektor::findItem(const int searchKey) {
 // public function which returns the tree, via pre-order traversal, as a linked list
 
 dpair* vektor::returnTreeAsList() { // pre-order traversal
-
+	
 	dpair  *head, *tail;
 
 	head    = new dpair;
@@ -193,22 +193,22 @@ dpair* vektor::returnTreeAsList() { // pre-order traversal
 
 	if (root->left  != leaf) { tail = returnSubtreeAsList(root->left,  tail); }
 	if (root->right != leaf) { tail = returnSubtreeAsList(root->right, tail); }
-
+	
 	if (head->x==0) { return NULL; /* empty tree */} else { return head; }
 }
 
 dpair* vektor::returnSubtreeAsList(element *z, dpair *head) {
 	dpair *newnode, *tail;
-
+	
 	newnode    = new dpair;
 	newnode->x = z->key;
 	newnode->y = z->stored;
 	head->next = newnode;
 	tail       = newnode;
-
+	
 	if (z->left  != leaf) { tail = returnSubtreeAsList(z->left,  tail); }
 	if (z->right != leaf) { tail = returnSubtreeAsList(z->right, tail); }
-
+	
 	return tail;
 }
 
@@ -219,11 +219,11 @@ tuple vektor::returnMaxKey() {
 	element *current;
 	current = root;
 	while (current->right != leaf) {		// search to bottom-right corner of tree
-		current = current->right; }		//
+		current = current->right; }		// 
 	themax.m = current->stored;			// store the data found
-	themax.i = current->key;				//
-	themax.j = current->key;				//
-
+	themax.i = current->key;				// 
+	themax.j = current->key;				// 
+	
 	return themax;						// return that data
 }
 
@@ -233,13 +233,13 @@ element* vektor::returnMinKey(element *z) {
 
 	current = z;
 	while (current->left != leaf) {		// search to bottom-right corner of tree
-		current = current->left; }		//
+		current = current->left; }		// 
 	return current;					// return pointer to the minimum
 }
 
 element* vektor::returnSuccessor(element *z) {
 	element *current, *w;
-
+	
 	w = z;
 	if (w->right != leaf) {				// if right-subtree exists, return min of it
 		return returnMinKey(w->right); }
@@ -260,7 +260,7 @@ int vektor::returnHeaplimit() { return heap->returnHeaplimit(); }
 // Insert Functions -------------------------------------------------------------------
 // public insert function
 void vektor::insertItem(int newKey, double newStored) {
-
+	
 	// first we check to see if newKey is already present in the tree; if so, we simply
 	// set .stored += newStored; if not, we must find where to insert the key
 	element *newNode, *current;
@@ -272,11 +272,11 @@ void vektor::insertItem(int newKey, double newStored) {
 		heap->updateItem(current->heap_ptr, current->stored);
 												// update corresponding element in heap + reheapify; O(log k)
 	} else {										// didn't find it, so need to create it
-		tuple newitem;								//
-		newitem.m = newStored;						//
-		newitem.i = -1;							//
-		newitem.j = newKey;							//
-
+		tuple newitem;								// 
+		newitem.m = newStored;						//  
+		newitem.i = -1;							//  
+		newitem.j = newKey;							//  
+		
 		newNode			= new element;				// element for the vektor
 		newNode->key		= newKey;					//  store newKey
 		newNode->stored	= newStored;  				//  store newStored
@@ -286,7 +286,7 @@ void vektor::insertItem(int newKey, double newStored) {
 		newNode->right		= leaf;					//  right leaf
 		newNode->heap_ptr   = heap->insertItem(newitem);  // add new item to the vektor heap
 		support++;								// increment node count in vektor
-
+		
 		// must now search for where to insert newNode, i.e., find the correct parent and
 		// set the parent and child to point to each other properly
 		current = root;
@@ -296,7 +296,7 @@ void vektor::insertItem(int newKey, double newStored) {
 			leaf->parent   = newNode;								//   set leaf's parent
 			current		= leaf;									//   skip next loop
 		}
-
+		
 		while (current != leaf) {									// search for insertion point
 			if (newKey < current->key) {								// left-or-right?
 				if (current->left  != leaf) { current = current->left;  }	// try moving down-left
@@ -305,7 +305,7 @@ void vektor::insertItem(int newKey, double newStored) {
 					current->left		= newNode;					//    set child
 					current			= leaf;						//    exit search
 				}
-			} else {												//
+			} else {												// 
 				if (current->right != leaf) { current = current->right; }   // try moving down-right
 				else {											// else found new parent
 					newNode->parent	= current;					//    set parent
@@ -323,7 +323,7 @@ void vektor::insertItem(int newKey, double newStored) {
 
 // private house-keeping function for insertion
 void vektor::insertCleanup(element *z) {
-
+	
 	if (z->parent==NULL) {								// fix now if z is root
 		z->color = false; return; }
 	element *temp;
@@ -372,7 +372,7 @@ void vektor::insertCleanup(element *z) {
 void vektor::deleteItem(int killKey) {
 	element *x, *y, *z;
 	char pauseme;
-
+	
 	z = findItem(killKey);
 	if (z == NULL) { return; }						// item not present; bail out
 
@@ -380,48 +380,48 @@ void vektor::deleteItem(int killKey) {
 		tuple newmax    = heap->returnMaximum();		// get old maximum in O(1)
 		heap->deleteItem(z->heap_ptr);				// delete item in the max-heap O(log k)
 	}
-
+	
 	if (support==1) {								// -- attempt to delete the root
 		root->key		= 0;							// restore root node to default state
-		root->stored   = -4294967296.0;				//
-		root->color    = false;						//
-		root->parent   = NULL;						//
-		root->left	= leaf;						//
-		root->right    = leaf;						//
-		root->heap_ptr = NULL;						//
+		root->stored   = -4294967296.0;				// 
+		root->color    = false;						// 
+		root->parent   = NULL;						// 
+		root->left	= leaf;						// 
+		root->right    = leaf;						// 
+		root->heap_ptr = NULL;						// 
 		support--;								// set support to zero
 		return;									// exit - no more work to do
 	}
-
+	
 	if (z != NULL) {
 		support--;								// decrement node count
 		if ((z->left == leaf) || (z->right==leaf)) {		// case of less than two children
 			  y = z; }							//    set y to be z
 		else { y = returnSuccessor(z); }				//    set y to be z's key-successor
-
+		
 		if (y->left!=leaf) { x = y->left; }			// pick y's one child (left-child)
 		else			    { x = y->right; }			//				  (right-child)
 		x->parent = y->parent;						// make y's child's parent be y's parent
 
 		if (y->parent==NULL) { root = x; }				// if y is the root, x is now root
-		else {									//
+		else {									// 
 			if (y == y->parent->left) {				// decide y's relationship with y's parent
 				y->parent->left  = x;				//   replace x as y's parent's left child
-			} else {								//
+			} else {								// 
 				y->parent->right = x; }				//   replace x as y's parent's left child
-		}										//
+		}										// 
 
 		if (y!=z) {								// insert y into z's spot
 			z->key		= y->key;					// copy y data into z
-			z->stored		= y->stored;				//
-			z->heap_ptr    = y->heap_ptr;				//
-		}										//
+			z->stored		= y->stored;				// 
+			z->heap_ptr    = y->heap_ptr;				// 
+		}										// 
 
 		if (y->color==false) { deleteCleanup(x); }		// do house-keeping to maintain balance
 		delete y;									// deallocate y
 		y = NULL;									// point y to NULL for safety
-	}											//
-
+	}											// 
+		
 	return;
 }
 
@@ -439,21 +439,21 @@ void vektor::deleteCleanup(element *x) {
 			if ((w->left->color==false) && (w->right->color==false)) {
 				w->color = true;					// color w RED					(case 2)
 				x = x->parent;						// examine x's parent			(case 2)
-			} else {								//
-				if (w->right->color==false) {			//
+			} else {								// 
+				if (w->right->color==false) {			// 
 					w->left->color = false;			// color w's left child BLACK		(case 3)
 					w->color = true;				// color w RED					(case 3)
 					t = x->parent;					// store x's parent
 					rotateRight(w);				// right rotation on w			(case 3)
 					x->parent = t;					// restore x's parent
 					w = x->parent->right;			// make w be x's right sibling	(case 3)
-				}								//
+				}								// 
 				w->color			= x->parent->color; // make w's color = x's parent's   (case 4)
 				x->parent->color    = false;			// color x's parent BLACK		(case 4)
 				w->right->color	= false;			// color w's right child BLACK	(case 4)
 				rotateLeft(x->parent);				// left rotation on x's parent	(case 4)
 				x = root;							// finished work. bail out		(case 4)
-			}									//
+			}									// 
 		} else {									// x is RIGHT-CHILD
 			w = x->parent->left;					// grab x's sibling
 			if (w->color==true) {					// if x's sibling is RED
@@ -465,15 +465,15 @@ void vektor::deleteCleanup(element *x) {
 			if ((w->right->color==false) && (w->left->color==false)) {
 				w->color = true;					// color w RED					(case 2)
 				x= x->parent;						// examine x's parent			(case 2)
-			} else {								//
-				if (w->left->color==false) {			//
+			} else {								// 
+				if (w->left->color==false) {			// 
 					w->right->color	= false;		// color w's right child BLACK	(case 3)
 					w->color			= true;		// color w RED					(case 3)
 					t				= x->parent;   // store x's parent
 					rotateLeft(w);					// left rotation on w			(case 3)
 					x->parent			= t;			// restore x's parent
 					w = x->parent->left;			// make w be x's left sibling		(case 3)
-				}								//
+				}								// 
 				w->color = x->parent->color;			// make w's color = x's parent's   (case 4)
 				x->parent->color    = false;			// color x's parent BLACK		(case 4)
 				w->left->color		= false;			// color w's left child BLACK		(case 4)
@@ -498,14 +498,14 @@ void vektor::rotateLeft(element *x) {
 	y->parent       = x->parent;					// make y's new parent be x's old parent
 
 	if (x->parent==NULL) { root = y; }				// if x was root, make y root
-	else {									//
+	else {									// 
 		if (x == x->parent->left)				// if x is LEFT-CHILD, make y be x's parent's
 			{ x->parent->left  = y; }			//    left-child
 		else { x->parent->right = y; }			//    right-child
-	}										//
+	}										// 
 	y->left   = x;								// make x be y's LEFT-CHILD
 	x->parent = y;								// make y be x's parent
-
+	
 	return;
 }
 
@@ -515,7 +515,7 @@ void vektor::rotateRight(element *y) {
 	x                = y->left;					// grab left child
 	y->left          = x->right;					// replace left child yith x's right subtree
 	x->right->parent = y;						// replace y as x's right subtree's parent
-
+	
 	x->parent        = y->parent;					// make x's new parent be y's old parent
 	if (y->parent==NULL) { root = x; }				// if y was root, make x root
 	else {
@@ -525,7 +525,7 @@ void vektor::rotateRight(element *y) {
 	}
 	x->right  = y;								// make y be x's RIGHT-CHILD
 	y->parent = x;								// make x be y's parent
-
+	
 	return;
 }
 
