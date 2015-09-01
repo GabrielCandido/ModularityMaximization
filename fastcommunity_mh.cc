@@ -329,7 +329,7 @@ int main(int argc,char * argv[]) {
 		// ---------------------------------
 		// Find largest dQ
         //if (ioparm.textFlag > 0) { h->printHeapTop10(); cout << endl; }
-		/*int top = (h->heapSize() * fator_mod)+1;         // calcula a quantidade de pares a serem extraidos do heap;
+		int top = (h->heapSize() * fator_mod)+1;         // calcula a quantidade de pares a serem extraidos do heap;
 
         for(int auxI = 0; auxI < top; auxI++){
             auxTuples[auxI] = h->popMaximum();
@@ -345,11 +345,11 @@ int main(int argc,char * argv[]) {
             if(auxI != randIndex){
                 dq[auxTuples[auxI].i].heap_ptr = h->insertItem(auxTuples[auxI]);
             }
-		}*/
+		}
 		
 		
 		
-		dQmax = h->popMaximum();					// select maximum dQ_ij // convention: insert i into j
+		//dQmax = h->popMaximum();					// select maximum dQ_ij // convention: insert i into j
 		if (dQmax.m < -4000000000.0) { break; }		// no more joins possible
         //cout << "Q["<<t-1<<"] = "<<Q[t-1];
 		
