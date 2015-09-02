@@ -256,6 +256,7 @@ int main(int argc,char * argv[]) {
     string opt = argv[3];
     string exp = argv[4];
     argc -= 2;
+	int qtdExcucoes = 1;
 
     clock_t startMain = clock();
 
@@ -307,244 +308,276 @@ int main(int argc,char * argv[]) {
         //fsupp << 0 << "\t" << supportTot << "\t" << supportAve << "\t" << 0 << "\t->\t" << 0 << "\n";
         //fsupp.close();
 	}
-
-
-    vector< set<unsigned> > comms (gparm.n);
-    for (unsigned c=0;c<comms.size();c++){
-        comms[c].insert(c);
-    }
-
-
-	// ----------------------------------------------------------------------
-	// Start FastCommunity algorithm
-
-    //cout << "starting algorithm now." << endl;
-    clock_t startSearch = clock();
-    clock_t stopBest  = clock();
-	tuple  dQmax, dQnew;
-	tuple *auxTuples = new tuple[h->heapSize()];
-	int isupport, jsupport;
-	while (h->heapSize() > 2) {
-		
-		// ---------------------------------
-		// Find largest dQ
-        //if (ioparm.textFlag > 0) { h->printHeapTop10(); cout << endl; }
-		int top = (h->heapSize() * fator_mod)+1;         // calcula a quantidade de pares a serem extraidos do heap;
-
-        for(int auxI = 0; auxI < top; auxI++){
-            auxTuples[auxI] = h->popMaximum();
-
-		}
-
-        int randIndex;
-
-	    randIndex = rand() % top;
-        dQmax = auxTuples[randIndex];
-
-        for(int auxI = 0; auxI < top; auxI++){
-            if(auxI != randIndex){
-                dq[auxTuples[auxI].i].heap_ptr = h->insertItem(auxTuples[auxI]);
-            }
-		}
-		
-		
-		
-		//dQmax = h->popMaximum();					// select maximum dQ_ij // convention: insert i into j
-		if (dQmax.m < -4000000000.0) { break; }		// no more joins possible
-        //cout << "Q["<<t-1<<"] = "<<Q[t-1];
-		
-		// ---------------------------------
-		// Merge the chosen communities
-        //cout << "\tdQ = " << dQmax.m << "\t  |H| = " << h->heapSize() << "\n";
-        if (dq[dQmax.i].v == NULL || dq[dQmax.j].v == NULL) {
-            cout << "WARNING: invalid join (" << dQmax.i << " " << dQmax.j << ") found at top of heap "<<ioparm.filename<<" \n";
-            cout.flush();
-            break;
-            //cin >> pauseme;
-        }
-		isupport = dq[dQmax.i].v->returnNodecount();
-		jsupport = dq[dQmax.j].v->returnNodecount();
-		if (isupport < jsupport) {
-            //cout << "  join: " << dQmax.i << " -> " << dQmax.j << "\t";
-            //cout << "(" << isupport << " -> " << jsupport << ")\n";
-			mergeCommunities(dQmax.i, dQmax.j);	// merge community i into community j
-			joins[t].x = dQmax.i;				// record merge of i(x) into j(y)
-			joins[t].y = dQmax.j;				// 
-        } else {								//
-
-            //cout << "  join: " << dQmax.i << " <- " << dQmax.j << "\t";
-            //cout << "(" << isupport << " <- " << jsupport << ")\n";
-			dq[dQmax.i].heap_ptr = dq[dQmax.j].heap_ptr; // take community j's heap pointer
-			dq[dQmax.i].heap_ptr->i = dQmax.i;			//   mark it as i's
-			dq[dQmax.i].heap_ptr->j = dQmax.j;			//   mark it as i's
-			mergeCommunities(dQmax.j, dQmax.i);	// merge community j into community i
-			joins[t].x = dQmax.j;				// record merge of j(x) into i(y)
-			joins[t].y = dQmax.i;				// 
-		}									// 
-		Q[t] = dQmax.m + Q[t-1];					// record Q(t)
-		
-		// ---------------------------------
-		// Record join to file
-        //ofstream fjoins(ioparm.f_joins.c_str(), ios::app);   // open file for writing the next join
-        //fjoins << joins[t].x-1 << "\t" << joins[t].y-1 << "\t";	// convert to external format
-        //if ((Q[t] > 0.0 && Q[t] < 0.0000000000001) || (Q[t] < 0.0 && Q[t] > -0.0000000000001))
-//			{ fjoins << 0.0; } else { fjoins << Q[t]; }
-        //fjoins << "\t" << t << "\n";
-        //fjoins.close();
-		// Note that it is the .joins file which contains both the dendrogram and the corresponding
-		// Q values. The file format is tab-delimited columns of data, where the columns are:
-		// 1. the community which grows
-		// 2. the community which was absorbed
-		// 3. the modularity value Q after the join
-		// 4. the time step value
-		
-		// ---------------------------------
-		// If cutstep valid, then do some work
-		if (t <= ioparm.cutstep) { groupListsUpdate(joins[t].x, joins[t].y); }
-		if (t == ioparm.cutstep) { recordNetwork(); recordGroupLists(); groupListsStats(); }
-
-		// ---------------------------------
-		// Record the support data to file
-		if (ioparm.suppFlag) {
-			dqSupport();
-			ofstream fsupp(ioparm.f_support.c_str(), ios::app);
-			// time   remaining support   mean support   support_i --   support_j
-			fsupp << t << "\t" << supportTot << "\t" << supportAve << "\t" << isupport;
-			if (isupport < jsupport) { fsupp  << "\t->\t"; }
-			else { fsupp << "\t<-\t"; }
-			fsupp << jsupport << "\n";
-			fsupp.close();
-		}
-        if (Q[t] > Qmax.y) { Qmax.y = Q[t]; Qmax.x = t; stopBest = clock();}
-		
-		t++;									// increment time
-	} // ------------- end community merging loop
-
-    clock_t stop = clock();
-
-    cout << "Q["<<t-1<<"] = "<<Q[t-1] << endl;
 	
-	// ----------------------------------------------------------------------
-	// Record some results
-	t1 = time(&t1);
-    //ofstream fout(ioparm.f_parm.c_str(), ios::app);
-    cout << "---MODULARITY---\n";
-    cout << "MAXQ------:\t" << Qmax.y  << "\n";
-    cout << "STEP------:\t" << Qmax.x  << "\n";
-    cout << "EXIT------:\t" << asctime(localtime(&t1));
-    //fout.close();
+	vector<vector <set <unsigned> > > resultados;
+	
+	for(int numExecucao=0; numExecucao<qtdExcucoes; numExecucao++){
+		
+		//Define Vetor de comunidades
+		vector< set<unsigned> > comms (gparm.n);
+		for (unsigned c=0;c<comms.size();c++){
+			comms[c].insert(c);
+		}
+		
+		// ----------------------------------------------------------------------
+		// Start FastCommunity algorithm
 
-//cout<<"\naaa: "<<joins[Qmax.x-1].x<<","<<joins[Qmax.x-1].y;
-//cout<<">>>"<<MEIJ[0].size()<<"<<<";
-unsigned rec, sen;
-set<unsigned>::iterator ita, itb, itf;
-for (unsigned it = 1; it<= Qmax.x;it++){
-    rec = joins[it].y-1;
-    sen = joins[it].x-1;
+		clock_t startSearch = clock();
+		clock_t stopBest  = clock();
+		tuple  dQmax, dQnew;
+		tuple *auxTuples = new tuple[h->heapSize()];
+		int isupport, jsupport;
+		while (h->heapSize() > 2) {
+			
+			// ---------------------------------
+			// Encontra o maior dQ 
+			int top = (h->heapSize() * fator_mod)+1;         // calcula a quantidade de pares a serem extraidos do heap;
 
-    comms[rec].insert(comms[sen].begin(), comms[sen].end());
-    comms[sen].clear();
-}
-//cout<<"\nFIZ";cout.flush();
+			for(int auxI = 0; auxI < top; auxI++){
+				auxTuples[auxI] = h->popMaximum();
+
+			}
+
+			int randIndex;
+
+			randIndex = rand() % top;
+			dQmax = auxTuples[randIndex];
+
+			for(int auxI = 0; auxI < top; auxI++){
+				if(auxI != randIndex){
+					dq[auxTuples[auxI].i].heap_ptr = h->insertItem(auxTuples[auxI]);
+				}
+			}
+			
+			
+			
+			//dQmax = h->popMaximum();					// select maximum dQ_ij // convention: insert i into j
+			if (dQmax.m < -4000000000.0) { break; }		// no more joins possible
+			//cout << "Q["<<t-1<<"] = "<<Q[t-1];
+			
+			// ---------------------------------
+			// Merge the chosen communities
+			//cout << "\tdQ = " << dQmax.m << "\t  |H| = " << h->heapSize() << "\n";
+			if (dq[dQmax.i].v == NULL || dq[dQmax.j].v == NULL) {
+				cout << "WARNING: invalid join (" << dQmax.i << " " << dQmax.j << ") found at top of heap "<<ioparm.filename<<" \n";
+				cout.flush();
+				break;
+				//cin >> pauseme;
+			}
+			isupport = dq[dQmax.i].v->returnNodecount();
+			jsupport = dq[dQmax.j].v->returnNodecount();
+			if (isupport < jsupport) {
+				//cout << "  join: " << dQmax.i << " -> " << dQmax.j << "\t";
+				//cout << "(" << isupport << " -> " << jsupport << ")\n";
+				mergeCommunities(dQmax.i, dQmax.j);	// merge community i into community j
+				joins[t].x = dQmax.i;				// record merge of i(x) into j(y)
+				joins[t].y = dQmax.j;				// 
+			} else {								//
+
+				//cout << "  join: " << dQmax.i << " <- " << dQmax.j << "\t";
+				//cout << "(" << isupport << " <- " << jsupport << ")\n";
+				dq[dQmax.i].heap_ptr = dq[dQmax.j].heap_ptr; // take community j's heap pointer
+				dq[dQmax.i].heap_ptr->i = dQmax.i;			//   mark it as i's
+				dq[dQmax.i].heap_ptr->j = dQmax.j;			//   mark it as i's
+				mergeCommunities(dQmax.j, dQmax.i);	// merge community j into community i
+				joins[t].x = dQmax.j;				// record merge of j(x) into i(y)
+				joins[t].y = dQmax.i;				// 
+			}									// 
+			Q[t] = dQmax.m + Q[t-1];					// record Q(t)
+			
+			// ---------------------------------
+			// Record join to file
+			//ofstream fjoins(ioparm.f_joins.c_str(), ios::app);   // open file for writing the next join
+			//fjoins << joins[t].x-1 << "\t" << joins[t].y-1 << "\t";	// convert to external format
+			//if ((Q[t] > 0.0 && Q[t] < 0.0000000000001) || (Q[t] < 0.0 && Q[t] > -0.0000000000001))
+	//			{ fjoins << 0.0; } else { fjoins << Q[t]; }
+			//fjoins << "\t" << t << "\n";
+			//fjoins.close();
+			// Note that it is the .joins file which contains both the dendrogram and the corresponding
+			// Q values. The file format is tab-delimited columns of data, where the columns are:
+			// 1. the community which grows
+			// 2. the community which was absorbed
+			// 3. the modularity value Q after the join
+			// 4. the time step value
+			
+			// ---------------------------------
+			// If cutstep valid, then do some work
+			if (t <= ioparm.cutstep) { groupListsUpdate(joins[t].x, joins[t].y); }
+			if (t == ioparm.cutstep) { recordNetwork(); recordGroupLists(); groupListsStats(); }
+
+			// ---------------------------------
+			// Record the support data to file
+			if (ioparm.suppFlag) {
+				dqSupport();
+				ofstream fsupp(ioparm.f_support.c_str(), ios::app);
+				// time   remaining support   mean support   support_i --   support_j
+				fsupp << t << "\t" << supportTot << "\t" << supportAve << "\t" << isupport;
+				if (isupport < jsupport) { fsupp  << "\t->\t"; }
+				else { fsupp << "\t<-\t"; }
+				fsupp << jsupport << "\n";
+				fsupp.close();
+			}
+			if (Q[t] > Qmax.y) { Qmax.y = Q[t]; Qmax.x = t; stopBest = clock();}
+			
+			t++;									// increment time
+		} // ------------- end community merging loop
+
+		clock_t stop = clock();
+
+		cout << "Q["<<t-1<<"] = "<<Q[t-1] << endl;
+		
+		// ----------------------------------------------------------------------
+		// Record some results
+		t1 = time(&t1);
+		//ofstream fout(ioparm.f_parm.c_str(), ios::app);
+		cout << "---MODULARITY---\n";
+		cout << "MAXQ------:\t" << Qmax.y  << "\n";
+		cout << "STEP------:\t" << Qmax.x  << "\n";
+		cout << "EXIT------:\t" << asctime(localtime(&t1));
+		//fout.close();
+
+	//cout<<"\naaa: "<<joins[Qmax.x-1].x<<","<<joins[Qmax.x-1].y;
+	//cout<<">>>"<<MEIJ[0].size()<<"<<<";
+	unsigned rec, sen;
+	set<unsigned>::iterator ita, itb, itf;
+	for (unsigned it = 1; it<= Qmax.x;it++){
+		rec = joins[it].y-1;
+		sen = joins[it].x-1;
+
+		comms[rec].insert(comms[sen].begin(), comms[sen].end());
+		comms[sen].clear();
+	}
+		
+	resultados.push_back(comms);
+
+	unsigned numberCom = 0;
+	bool counted;
+	float mod = 0.0;
+	for (unsigned c=0;c<comms.size();c++){
+		counted = false;
+		ita = comms[c].begin();
+		while(ita!= comms[c].end()){
+			if (counted == false){
+				counted = true;
+				numberCom++;
+			}
+			itb=comms[c].begin();
+			while(itb!= comms[c].end()){
+				itf = MEIJ[*ita].find(*itb);
+				if (itf != MEIJ[*ita].end()){
+					mod+= 1.0/(2.0*gparm.m);
+				}
+				mod-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
+				itb++;
+			}
+			ita++;
+		}
+	}
+
+	//cout<<"\nMODULARIDADE: "<<mod;
 
 
+	float dens = 0.0;
+	float e, d;
 
-unsigned numberCom = 0;
-bool counted;
-float mod = 0.0;
-for (unsigned c=0;c<comms.size();c++){
-    counted = false;
-    ita = comms[c].begin();
-    while(ita!= comms[c].end()){
-        if (counted == false){
-            counted = true;
-            numberCom++;
-        }
-        itb=comms[c].begin();
-        while(itb!= comms[c].end()){
-            itf = MEIJ[*ita].find(*itb);
-            if (itf != MEIJ[*ita].end()){
-                mod+= 1.0/(2.0*gparm.m);
-            }
-            mod-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
-            itb++;
-        }
-        ita++;
-    }
-}
+	for (unsigned c=0;c<comms.size();c++){
+		e=0.0;
+		d=0.0;
+		ita = comms[c].begin();
+		while(ita!= comms[c].end()){
+			itb=comms[c].begin();
+			d+=DEIJ[*ita];
+			while(itb!= comms[c].end()){
+				itf = MEIJ[*ita].find(*itb);
+				if (itf != MEIJ[*ita].end()){
+					e+=1.0;
+				}
+				itb++;
+			}
+			ita++;
+		}
+		if (comms[c].size()>0.0){
+			dens += (2.0*e-d)/comms[c].size();
+		}
 
-//cout<<"\nMODULARIDADE: "<<mod;
+	}
 
+	//cout<<"\ndensidade: "<<dens;
 
-float dens = 0.0;
-float e, d;
+	//    cout << "exited safely" << endl;
 
-for (unsigned c=0;c<comms.size();c++){
-    e=0.0;
-    d=0.0;
-    ita = comms[c].begin();
-    while(ita!= comms[c].end()){
-        itb=comms[c].begin();
-        d+=DEIJ[*ita];
-        while(itb!= comms[c].end()){
-            itf = MEIJ[*ita].find(*itb);
-            if (itf != MEIJ[*ita].end()){
-                e+=1.0;
-            }
-            itb++;
-        }
-        ita++;
-    }
-    if (comms[c].size()>0.0){
-        dens += (2.0*e-d)/comms[c].size();
-    }
-
-}
-
-//cout<<"\ndensidade: "<<dens;
-
-//    cout << "exited safely" << endl;
-
-    //storing the data
+		//storing the data
 
 
-    string instance = "";
-    bool passedExtension = false;
+		string instance = "";
+		bool passedExtension = false;
 
-    for (int i=ioparm.filename.size()-1;i>=0; i--){
+		for (int i=ioparm.filename.size()-1;i>=0; i--){
 
-        if (passedExtension==true){
+			if (passedExtension==true){
 
-            instance = ioparm.filename.at(i) + instance;
-        }else{
-            if (ioparm.filename.at(i) == '.'){
-                passedExtension = true;
-            }
-        }
-    }
+				instance = ioparm.filename.at(i) + instance;
+			}else{
+				if (ioparm.filename.at(i) == '.'){
+					passedExtension = true;
+				}
+			}
+		}
 
-    long long int totalTime, searchTime, bestTime;
-    totalTime = (((float)stop - (float)startMain) / CLOCKS_PER_SEC ) * 1000;
-    searchTime = (((float)stop - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
-    bestTime = (((float)stopBest - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
+		long long int totalTime, searchTime, bestTime;
+		totalTime = (((float)stop - (float)startMain) / CLOCKS_PER_SEC ) * 1000;
+		searchTime = (((float)stop - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
+		bestTime = (((float)stopBest - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
 
-    string expFile="cnm"+instance+"_"+exp;
-    ofstream f(expFile.c_str(), ios::app);
-    //ofstream fout(ioparm.f_parm.c_str(), ios::app);
-    f<<instance<<","<<gparm.n<<","<<gparm.m<<","
-           <<exp<<","
-           <<t<<","<<Qmax.x<<","
-           <<opt<<","<< dens << "," << mod <<","
-           <<numberCom<<","
-           <<t<<","<<Qmax.x<<","
-           <<totalTime<<","<<searchTime<<","<<bestTime
-           <<"\n";
-    f.close();
-
-
+		string expFile="cnm"+instance+"_"+exp;
+		ofstream f(expFile.c_str(), ios::app);
+		//ofstream fout(ioparm.f_parm.c_str(), ios::app);
+		f<<instance<<","<<gparm.n<<","<<gparm.m<<","
+			   <<exp<<","
+			   <<t<<","<<Qmax.x<<","
+			   <<opt<<","<< dens << "," << mod <<","
+			   <<numberCom<<","
+			   <<t<<","<<Qmax.x<<","
+			   <<totalTime<<","<<searchTime<<","<<bestTime
+			   <<"\n";
+		f.close();
 
 
-
+	}
+	
+	set <unsigned>::iterator itComms;
+	vector <set <unsigned> >::iterator itResultados;
+	
+	for(int i=0; i<qtdExcucoes; i++){
+		itResultados = resultados[i].begin();
+		while(itResultados != resultados[i].end()){
+				itComms = (*itResultados).begin();
+				if((*itResultados).size() > 0){
+					cout << "COMUNIDADE!!" << endl;	
+				}
+				
+				while(itComms != (*itResultados).end()){
+					cout << *itComms << endl;	
+					itComms++;
+				}
+				itResultados++;
+		}
+	}
+	
+	
+	/*while(itResultados != resultados.end()){
+		for(int i=0; i< (*itResultados).size(); i++){
+			itComms = itResultados[i].begin();
+			cout<< "COMUNIDADE!" <<endl;
+			while(itComms != itResultados[i].end()){
+				cout << *itComms <<endl;
+				itComms++;
+			}
+		}
+		itResultados++;
+	}*/
+	
+		
 	return 1;
 }
 
