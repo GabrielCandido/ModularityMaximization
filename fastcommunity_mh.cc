@@ -255,8 +255,9 @@ int main(int argc,char * argv[]) {
 
     string opt = argv[3];
     string exp = argv[4];
+	int qtdExcucoes = atoi(argv[5]);
     argc -= 2;
-	int qtdExcucoes = 1;
+	//int qtdExcucoes = 1;
 
     clock_t startMain = clock();
 
@@ -274,45 +275,44 @@ int main(int argc,char * argv[]) {
 	
 	srand(time (NULL)); //Semente para escolher aleatoriamente o condidato a união
 	
-	// ----------------------------------------------------------------------
-	// Parse the command line, build filenames and then import the .pairs file
-    //cout << "\nFast Community Inference.\n";
-    //cout << "Copyright (c) 2004 by Aaron Clauset (aaron@cs.unm.edu)\n";
-	if (parseCommandLine(argc, argv)) {} else { return 0; }
-    //cout << "\nimporting: " << ioparm.filename << endl;    // note the input filename
-	buildFilenames();								// builds filename strings
-	readInputFile();								// gets adjacency matrix data
-	
-	// ----------------------------------------------------------------------
-    // Allocate data structures for main loop
-	a     = new double [gparm.maxid];
-	Q     = new double [gparm.n+1];
-	joins = new apair  [gparm.n+1];
-	for (int i=0; i<gparm.maxid; i++) { a[i] = 0.0; }
-	for (int i=0; i<gparm.n+1;   i++) { Q[i] = 0.0; joins[i].x = 0; joins[i].y = 0; }
-	int t = 1;
-	Qmax.y = -4294967296.0;  Qmax.x = 0;
-	if (ioparm.cutstep > 0) { groupListsSetup(); }		// will need to track agglomerations
-	
-    //cout << "now building initial dQ[]" << endl;
-	buildDeltaQMatrix();							// builds dQ[] and h
-	
-	// initialize f_joins, f_support files
-    //ofstream fjoins(ioparm.f_joins.c_str(), ios::trunc);
-    //fjoins << -1 << "\t" << -1 << "\t" << Q[0] << "\t0\n";
-    //fjoins.close();
-
-	if (ioparm.suppFlag) {
-        //ofstream fsupp(ioparm.f_support.c_str(), ios::trunc);
-        //dqSupport();
-        //fsupp << 0 << "\t" << supportTot << "\t" << supportAve << "\t" << 0 << "\t->\t" << 0 << "\n";
-        //fsupp.close();
-	}
-	
 	vector<vector <set <unsigned> > > resultados;
 	
 	for(int numExecucao=0; numExecucao<qtdExcucoes; numExecucao++){
+		// ----------------------------------------------------------------------
+		// Parse the command line, build filenames and then import the .pairs file
+		//cout << "\nFast Community Inference.\n";
+		//cout << "Copyright (c) 2004 by Aaron Clauset (aaron@cs.unm.edu)\n";
+		if (parseCommandLine(argc, argv)) {} else { return 0; }
+		//cout << "\nimporting: " << ioparm.filename << endl;    // note the input filename
+		buildFilenames();								// builds filename strings
+		readInputFile();								// gets adjacency matrix data
 		
+		// ----------------------------------------------------------------------
+		// Allocate data structures for main loop
+		a     = new double [gparm.maxid];
+		Q     = new double [gparm.n+1];
+		joins = new apair  [gparm.n+1];
+		for (int i=0; i<gparm.maxid; i++) { a[i] = 0.0; }
+		for (int i=0; i<gparm.n+1;   i++) { Q[i] = 0.0; joins[i].x = 0; joins[i].y = 0; }
+		int t = 1;
+		Qmax.y = -4294967296.0;  Qmax.x = 0;
+		if (ioparm.cutstep > 0) { groupListsSetup(); }		// will need to track agglomerations
+		
+		//cout << "now building initial dQ[]" << endl;
+		buildDeltaQMatrix();							// builds dQ[] and h
+		
+		// initialize f_joins, f_support files
+		//ofstream fjoins(ioparm.f_joins.c_str(), ios::trunc);
+		//fjoins << -1 << "\t" << -1 << "\t" << Q[0] << "\t0\n";
+		//fjoins.close();
+
+		if (ioparm.suppFlag) {
+			//ofstream fsupp(ioparm.f_support.c_str(), ios::trunc);
+			//dqSupport();
+			//fsupp << 0 << "\t" << supportTot << "\t" << supportAve << "\t" << 0 << "\t->\t" << 0 << "\n";
+			//fsupp.close();
+		}
+	
 		//Define Vetor de comunidades
 		vector< set<unsigned> > comms (gparm.n);
 		for (unsigned c=0;c<comms.size();c++){
@@ -541,6 +541,8 @@ int main(int argc,char * argv[]) {
 			   <<totalTime<<","<<searchTime<<","<<bestTime
 			   <<"\n";
 		f.close();
+		
+		comms.clear();
 
 
 	}
@@ -550,6 +552,7 @@ int main(int argc,char * argv[]) {
 	
 	for(int i=0; i<qtdExcucoes; i++){
 		itResultados = resultados[i].begin();
+		cout << endl << "RESULTADO " << i + 1 << endl;
 		while(itResultados != resultados[i].end()){
 				itComms = (*itResultados).begin();
 				if((*itResultados).size() > 0){
@@ -565,19 +568,6 @@ int main(int argc,char * argv[]) {
 	}
 	
 	
-	/*while(itResultados != resultados.end()){
-		for(int i=0; i< (*itResultados).size(); i++){
-			itComms = itResultados[i].begin();
-			cout<< "COMUNIDADE!" <<endl;
-			while(itComms != itResultados[i].end()){
-				cout << *itComms <<endl;
-				itComms++;
-			}
-		}
-		itResultados++;
-	}*/
-	
-		
 	return 1;
 }
 
@@ -1210,6 +1200,8 @@ void readInputFile() {
 	bool existsFlag;							// flag for edge existence
 	time_t t1; t1 = time(&t1);
 	time_t t2; t2 = time(&t2);
+	MEIJ.clear();
+	DEIJ.clear();
 	
 	// First scan through the input file to discover the largest node id. We need to
 	// do this so that we can allocate a properly sized array for the sparse matrix
