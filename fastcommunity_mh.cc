@@ -436,75 +436,75 @@ int main(int argc,char * argv[]) {
 		cout << "EXIT------:\t" << asctime(localtime(&t1));
 		//fout.close();
 
-	//cout<<"\naaa: "<<joins[Qmax.x-1].x<<","<<joins[Qmax.x-1].y;
-	//cout<<">>>"<<MEIJ[0].size()<<"<<<";
-	unsigned rec, sen;
-	set<unsigned>::iterator ita, itb, itf;
-	for (unsigned it = 1; it<= Qmax.x;it++){
-		rec = joins[it].y-1;
-		sen = joins[it].x-1;
+		//cout<<"\naaa: "<<joins[Qmax.x-1].x<<","<<joins[Qmax.x-1].y;
+		//cout<<">>>"<<MEIJ[0].size()<<"<<<";
+		unsigned rec, sen;
+		set<unsigned>::iterator ita, itb, itf;
+		for (unsigned it = 1; it<= Qmax.x;it++){
+			rec = joins[it].y-1;
+			sen = joins[it].x-1;
 
-		comms[rec].insert(comms[sen].begin(), comms[sen].end());
-		comms[sen].clear();
-	}
-		
-	resultados.push_back(comms);
+			comms[rec].insert(comms[sen].begin(), comms[sen].end());
+			comms[sen].clear();
+		}
+			
+		resultados.push_back(comms);
 
-	unsigned numberCom = 0;
-	bool counted;
-	float mod = 0.0;
-	for (unsigned c=0;c<comms.size();c++){
-		counted = false;
-		ita = comms[c].begin();
-		while(ita!= comms[c].end()){
-			if (counted == false){
-				counted = true;
-				numberCom++;
-			}
-			itb=comms[c].begin();
-			while(itb!= comms[c].end()){
-				itf = MEIJ[*ita].find(*itb);
-				if (itf != MEIJ[*ita].end()){
-					mod+= 1.0/(2.0*gparm.m);
+		unsigned numberCom = 0;
+		bool counted;
+		float mod = 0.0;
+		for (unsigned c=0;c<comms.size();c++){
+			counted = false;
+			ita = comms[c].begin();
+			while(ita!= comms[c].end()){
+				if (counted == false){
+					counted = true;
+					numberCom++;
 				}
-				mod-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
-				itb++;
-			}
-			ita++;
-		}
-	}
-
-	//cout<<"\nMODULARIDADE: "<<mod;
-
-
-	float dens = 0.0;
-	float e, d;
-
-	for (unsigned c=0;c<comms.size();c++){
-		e=0.0;
-		d=0.0;
-		ita = comms[c].begin();
-		while(ita!= comms[c].end()){
-			itb=comms[c].begin();
-			d+=DEIJ[*ita];
-			while(itb!= comms[c].end()){
-				itf = MEIJ[*ita].find(*itb);
-				if (itf != MEIJ[*ita].end()){
-					e+=1.0;
+				itb=comms[c].begin();
+				while(itb!= comms[c].end()){
+					itf = MEIJ[*ita].find(*itb);
+					if (itf != MEIJ[*ita].end()){
+						mod+= 1.0/(2.0*gparm.m);
+					}
+					mod-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
+					itb++;
 				}
-				itb++;
+				ita++;
 			}
-			ita++;
-		}
-		if (comms[c].size()>0.0){
-			dens += (2.0*e-d)/comms[c].size();
 		}
 
-	}
+		//cout<<"\nMODULARIDADE: "<<mod;
 
-	//cout<<"\ndensidade: "<<dens;
 
-	//    cout << "exited safely" << endl;
+		float dens = 0.0;
+		float e, d;
+
+		for (unsigned c=0;c<comms.size();c++){
+			e=0.0;
+			d=0.0;
+			ita = comms[c].begin();
+			while(ita!= comms[c].end()){
+				itb=comms[c].begin();
+				d+=DEIJ[*ita];
+				while(itb!= comms[c].end()){
+					itf = MEIJ[*ita].find(*itb);
+					if (itf != MEIJ[*ita].end()){
+						e+=1.0;
+					}
+					itb++;
+				}
+				ita++;
+			}
+			if (comms[c].size()>0.0){
+				dens += (2.0*e-d)/comms[c].size();
+			}
+
+		}
+
+		//cout<<"\ndensidade: "<<dens;
+
+		//    cout << "exited safely" << endl;
 
 		//storing the data
 
@@ -546,9 +546,19 @@ int main(int argc,char * argv[]) {
 
 
 	}
+
+	// -------------------------------------------------------------------------- //
+	// --------------------  Indentifica a sobreposição ------------------------- //
+	// -------------------------------------------------------------------------- //
 	
 	set <unsigned>::iterator itComms;
 	vector <set <unsigned> >::iterator itResultados;
+	vector <set <unsigned> >::iterator itFinal;
+	
+	vector <set <unsigned> > resFinal;
+	
+	resFinal = resultados[0];	
+	itFinal = resultados[0].begin();
 	
 	for(int i=0; i<qtdExcucoes; i++){
 		itResultados = resultados[i].begin();
@@ -566,7 +576,6 @@ int main(int argc,char * argv[]) {
 				itResultados++;
 		}
 	}
-	
 	
 	return 1;
 }
@@ -889,11 +898,11 @@ void mergeCommunities(int i, int j) {
 				// we need to update that value in the heap and reheapify.
 				newMax = dq[current->x].v->returnMaxStored();		// (step 3)
 				if (ioparm.textFlag>1) { cout << "  (3) and dq["<<current->x<<"]'s new maximum is (" << newMax.m <<" "<<newMax.j<< ") while the old maximum was (" << dq[current->x].heap_ptr->m <<" "<<dq[current->x].heap_ptr->j<<")"<< endl; }
-//				if (newMax.m > dq[current->x].heap_ptr->m || dq[current->x].heap_ptr->j==i) {
+				//				if (newMax.m > dq[current->x].heap_ptr->m || dq[current->x].heap_ptr->j==i) {
 					h->updateItem(dq[current->x].heap_ptr, newMax);
 					if (ioparm.textFlag>1) { cout << "  updated dq["<<current->x<<"].heap_ptr to be (" << dq[current->x].heap_ptr->m <<" "<<dq[current->x].heap_ptr->j<<")"<< endl; }
-//				}
-// Change suggested by Janne Aukia (jaukia@cc.hut.fi) on 12 Oct 2006
+				//				}
+				// Change suggested by Janne Aukia (jaukia@cc.hut.fi) on 12 Oct 2006
 				
 				// Finally, we must insert (x,dQ) into [j] to note that [j] essentially now
 				// has two connections with its neighbor [x].
@@ -924,11 +933,11 @@ void mergeCommunities(int i, int j) {
 				// in the heap) and then update the maximum in the heap if necessary.
 				newMax = dq[current->x].v->returnMaxStored();		// (step 3)
 				if (ioparm.textFlag>1) { cout << "  (3) and dq["<<current->x<<"]'s new maximum is (" << newMax.m <<" "<<newMax.j<< ") while the old maximum was (" << dq[current->x].heap_ptr->m <<" "<<dq[current->x].heap_ptr->j<<")"<< endl; }
-//				if (newMax.m > dq[current->x].heap_ptr->m || dq[current->x].heap_ptr->j==i) {
+				//if (newMax.m > dq[current->x].heap_ptr->m || dq[current->x].heap_ptr->j==i) {
 					h->updateItem(dq[current->x].heap_ptr, newMax);
 					if (ioparm.textFlag>1) { cout << "  updated dq["<<current->x<<"].heap_ptr to be (" << dq[current->x].heap_ptr->m <<" "<<dq[current->x].heap_ptr->j<<")"<< endl; }
-//				}
-// Change suggested by Janne Aukia (jaukia@cc.hut.fi) on 12 Oct 2006
+				//				}
+				// Change suggested by Janne Aukia (jaukia@cc.hut.fi) on 12 Oct 2006
 					
 				// Finally, we insert a new element (x,dQ+) of [j] to represent [j]'s new
 				// connection to [x]
