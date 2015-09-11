@@ -551,7 +551,7 @@ int main(int argc,char * argv[]) {
 	// --------------------  Indentifica a sobreposição ------------------------- //
 	// -------------------------------------------------------------------------- //
 	
-	set <unsigned>::iterator itComms;
+	set <unsigned>::iterator itComms, itCommsFinal;
 	vector <set <unsigned> >::iterator itResultados;
 	vector <set <unsigned> >::iterator itFinal;
 	
@@ -560,6 +560,21 @@ int main(int argc,char * argv[]) {
 	resFinal = resultados[0];	
 	itFinal = resultados[0].begin();
 	
+	while(itFinal != resultados[0].end()){
+		itCommsFinal = (*itFinal).begin();
+		while(itCommsFinal != (*itFinal).end()){
+			for(int i=1; i<qtdExcucoes; i++){
+				itResultados = resultados[i].begin();
+				while(itResultados != resultados[i].end()){
+					if((*itResultados).find(*itCommsFinal) != (*itResultados).end()){
+							
+					}
+				}	
+			}	
+		}
+	}
+	
+	//Imprime todas as comunidades
 	for(int i=0; i<qtdExcucoes; i++){
 		itResultados = resultados[i].begin();
 		cout << endl << "RESULTADO " << i + 1 << endl;
