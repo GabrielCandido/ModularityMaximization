@@ -329,29 +329,32 @@ int main(int argc,char * argv[]) {
 		int isupport, jsupport;
 		while (h->heapSize() > 2) {
 			
-			// ---------------------------------
-			// Encontra o maior dQ 
-			int top = (h->heapSize() * fator_mod)+1;         // calcula a quantidade de pares a serem extraidos do heap;
+			//if (numExecucao == 0){
+			//	dQmax = h->popMaximum();					// select maximum dQ_ij // convention: insert i into j
+			//}
+			//else{
+				// ---------------------------------
+				// Encontra o maior dQ 
+				int top = (h->heapSize() * fator_mod)+1;         // calcula a quantidade de pares a serem extraidos do heap;
 
-			for(int auxI = 0; auxI < top; auxI++){
-				auxTuples[auxI] = h->popMaximum();
+				for(int auxI = 0; auxI < top; auxI++){
+					auxTuples[auxI] = h->popMaximum();
 
-			}
-
-			int randIndex;
-
-			randIndex = rand() % top;
-			dQmax = auxTuples[randIndex];
-
-			for(int auxI = 0; auxI < top; auxI++){
-				if(auxI != randIndex){
-					dq[auxTuples[auxI].i].heap_ptr = h->insertItem(auxTuples[auxI]);
 				}
-			}
+
+				int randIndex;
+
+				randIndex = rand() % top;
+				dQmax = auxTuples[randIndex];
+
+				for(int auxI = 0; auxI < top; auxI++){
+					if(auxI != randIndex){
+						dq[auxTuples[auxI].i].heap_ptr = h->insertItem(auxTuples[auxI]);
+					}
+				}
+			//}
 			
 			
-			
-			//dQmax = h->popMaximum();					// select maximum dQ_ij // convention: insert i into j
 			if (dQmax.m < -4000000000.0) { break; }		// no more joins possible
 			//cout << "Q["<<t-1<<"] = "<<Q[t-1];
 			
@@ -551,27 +554,66 @@ int main(int argc,char * argv[]) {
 	// --------------------  Indentifica a sobreposição ------------------------- //
 	// -------------------------------------------------------------------------- //
 	
-	set <unsigned>::iterator itComms, itCommsFinal;
+	set <unsigned>::iterator itComms, itCommsFinal, itAux;
 	vector <set <unsigned> >::iterator itResultados;
 	vector <set <unsigned> >::iterator itFinal;
 	
 	vector <set <unsigned> > resFinal;
 	
+	//Salva o primeiro resultado como base para o resultado final
 	resFinal = resultados[0];	
 	itFinal = resultados[0].begin();
 	
+	//Navega entre os vértices da solução inicial
 	while(itFinal != resultados[0].end()){
 		itCommsFinal = (*itFinal).begin();
 		while(itCommsFinal != (*itFinal).end()){
-			for(int i=1; i<qtdExcucoes; i++){
+			//Busca nos demais resultados a comunidade em que o vértice foi alocado
+			for(int i=1; i< resultados.size(); i++){
 				itResultados = resultados[i].begin();
 				while(itResultados != resultados[i].end()){
+					//Se o vértice testado estiver nesta comunidade deste resultado navega verifica os vértices desta comunidade
 					if((*itResultados).find(*itCommsFinal) != (*itResultados).end()){
-							
+					  itComms = (*itResultados).begin();
+					  while(itComms != (*itResultados).end()){
+						//Se o vertice da comunidade for diferente do testado e não estiver na comunidade original procura em qual comunidade está
+						if(*itComms != *itCommsFinal && (*itFinal).find(*itComms) == (*itFinal).end()){
+							for(int j=0; j<resFinal.size(); j++){
+							    //Se encontrou a comundade em que o vértice adjacente está E o vértice atual ainda não está nesta comunidade procegue para adicionar
+								if(((resultados[0])[j]).find(*itComms) != ((resultados[0])[j]).end() && resFinal[j].find(*itCommsFinal) == (resFinal[j]).end() && (*itFinal).find(*itComms) == (*itFinal).end()){
+									int qtdOriginal = 0, qtdNova = 0;
+									
+									set <unsigned>::iterator itCommAtu;
+									itCommAtu = (*itResultados).begin();
+									//Verifica se a maioria dos vértices da comunidade no resultado final checada estão na comunidade do resultado que está sendo analisado
+									while(itCommAtu != (*itResultados).end()){
+										if(resFinal[j].find((*itCommAtu)) != resFinal[j].end()){
+											qtdOriginal++;
+										}
+										else{
+											qtdNova ++;
+										}
+										itCommAtu++;
+									}
+									
+									//Se a maioria dos vértices estiver na comunidad
+									if(qtdOriginal > qtdNova){
+										resFinal[j].insert(*itCommsFinal);
+									}
+									
+								}
+								
+							}
+						}						
+						itComms++;
+					  }
 					}
-				}	
-			}	
+					itResultados++;
+				}
+			}
+			itCommsFinal++;
 		}
+		itFinal++;
 	}
 	
 	//Imprime todas as comunidades
@@ -589,6 +631,19 @@ int main(int argc,char * argv[]) {
 					itComms++;
 				}
 				itResultados++;
+		}
+	}
+	
+	cout << "===================== RESULTADO FINAL ============================" << endl;
+	
+	for(int i=0; i< resFinal.size(); i++){
+		if(resFinal[i].size() > 0){
+			cout<< "COMUNIDADE" << i << endl;
+			itComms = resFinal[i].begin();
+			while(itComms != resFinal[i].end()){
+				cout << *itComms << endl;
+				itComms++;
+			}
 		}
 	}
 	
