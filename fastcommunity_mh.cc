@@ -560,9 +560,13 @@ int main(int argc,char * argv[]) {
 	
 	vector <set <unsigned> > resFinal;
 	
+	// -------------------------------------------------------------------------- //
+	// ---------------------------- Execuções múltiplas ------------------------- //
+	// -------------------------------------------------------------------------- //
+	
 	//Salva o primeiro resultado como base para o resultado final
 	resFinal = resultados[0];	
-	itFinal = resultados[0].begin();
+	itFinal = resultados[0].begin();	
 	
 	//Navega entre os vértices da solução inicial
 	while(itFinal != resultados[0].end()){
@@ -615,6 +619,39 @@ int main(int argc,char * argv[]) {
 		}
 		itFinal++;
 	}
+	
+	// -------------------------------------------------------------------------- //
+	// ---------------------------- Troca de Comunidades ------------------------ //
+	// -------------------------------------------------------------------------- //
+	
+	set<unsigned>::iterator ita, itb, itf;
+	unsigned numberCom = 0;
+	bool counted;
+	float modAnt = 0.0;
+	
+	for (unsigned c=0;c<resFinal.size();c++){
+		counted = false;
+		ita = resFinal[c].begin();
+		while(ita!= resFinal[c].end()){
+			if (counted == false){
+				counted = true;
+				numberCom++;
+			}
+			itb=resFinal[c].begin();
+			while(itb!= resFinal[c].end()){
+				itf = MEIJ[*ita].find(*itb);
+				if (itf != MEIJ[*ita].end()){
+					modAnt+= 1.0/(2.0*gparm.m);
+				}
+				modAnt-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
+				itb++;
+			}
+			ita++;
+		}
+	}
+	
+	cout << endl <<  "======================================= MODULARIDADE ==========================================" << endl;
+	cout << modAnt << endl << endl;
 	
 	//Imprime todas as comunidades
 	for(int i=0; i<qtdExcucoes; i++){
