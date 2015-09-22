@@ -600,7 +600,7 @@ int main(int argc,char * argv[]) {
 										itCommAtu++;
 									}
 									
-									//Se a maioria dos vértices estiver na comunidad
+									//Se a maioria dos vértices estiver na comunidade
 									if(qtdOriginal > qtdNova){
 										resFinal[j].insert(*itCommsFinal);
 									}
@@ -652,6 +652,57 @@ int main(int argc,char * argv[]) {
 	
 	cout << endl <<  "======================================= MODULARIDADE ==========================================" << endl;
 	cout << modAnt << endl << endl;
+	
+	for(int i=0; i< resFinal.size(); i++){
+		if(resFinal[i].size() > 0){
+			itComms = resFinal[i].begin();
+			while(itComms != resFinal[i].end()){
+				for(int j=0; j < resFinal.size(); j++){
+					if(resFinal[j].find(*itComms) == resFinal[j].end() && resFinal[j].size() > 0 && i != j){
+						//Insere vértice na nova comunidade
+						resFinal[j].insert(*itComms);
+						
+						//Recalcula a modularidade
+						set<unsigned>::iterator ita, itb, itf;
+						unsigned numberCom = 0;
+						bool counted;
+						float modAtu = 0.0;
+						
+						for (unsigned c=0;c<resFinal.size();c++){
+							counted = false;
+							ita = resFinal[c].begin();
+							while(ita!= resFinal[c].end()){
+								if (counted == false){
+									counted = true;
+									numberCom++;
+								}
+								itb=resFinal[c].begin();
+								while(itb!= resFinal[c].end()){
+									itf = MEIJ[*ita].find(*itb);
+									if (itf != MEIJ[*ita].end()){
+										modAtu += 1.0/(2.0*gparm.m);
+									}
+									modAtu-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
+									itb++;
+								}
+								ita++;
+							}
+						}
+						
+						//cout << endl << endl << "MOD = " << modAnt << " > " << modAtu << endl << endl;
+						//cout << "VERTICE " << *itComms << " COMUNIDADE " << j;
+						
+						//Se houve piora na modularidade retira o vértice recém inserido 
+						if (modAtu < modAnt){
+							resFinal[j].erase(*itComms);
+						}
+					}
+				}
+				
+				itComms++;
+			}
+		}
+	}
 	
 	//Imprime todas as comunidades
 	for(int i=0; i<qtdExcucoes; i++){
