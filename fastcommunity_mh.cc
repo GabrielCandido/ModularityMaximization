@@ -260,8 +260,14 @@ int main(int argc,char * argv[]) {
 	//int qtdExcucoes = 1;
 
     clock_t startMain = clock();
-
-
+	clock_t startSearch;
+    clock_t stopBest;
+	clock_t stop;
+	string instance;
+	
+	float dens, mod;
+	int t;
+	
 	// default values for parameters which may be modified from the commandline
 	ioparm.timer     = 20;
 	ioparm.fileFlag  = NONE;
@@ -294,7 +300,7 @@ int main(int argc,char * argv[]) {
 		joins = new apair  [gparm.n+1];
 		for (int i=0; i<gparm.maxid; i++) { a[i] = 0.0; }
 		for (int i=0; i<gparm.n+1;   i++) { Q[i] = 0.0; joins[i].x = 0; joins[i].y = 0; }
-		int t = 1;
+		t = 1;
 		Qmax.y = -4294967296.0;  Qmax.x = 0;
 		if (ioparm.cutstep > 0) { groupListsSetup(); }		// will need to track agglomerations
 		
@@ -322,8 +328,8 @@ int main(int argc,char * argv[]) {
 		// ----------------------------------------------------------------------
 		// Start FastCommunity algorithm
 
-		clock_t startSearch = clock();
-		clock_t stopBest  = clock();
+		startSearch = clock();
+		stopBest  = clock();
 		tuple  dQmax, dQnew;
 		tuple *auxTuples = new tuple[h->heapSize()];
 		int isupport, jsupport;
@@ -425,7 +431,7 @@ int main(int argc,char * argv[]) {
 			t++;									// increment time
 		} // ------------- end community merging loop
 
-		clock_t stop = clock();
+		stop = clock();
 
 		cout << "Q["<<t-1<<"] = "<<Q[t-1] << endl;
 		
@@ -455,7 +461,7 @@ int main(int argc,char * argv[]) {
 
 		unsigned numberCom = 0;
 		bool counted;
-		float mod = 0.0;
+		mod = 0.0;
 		for (unsigned c=0;c<comms.size();c++){
 			counted = false;
 			ita = comms[c].begin();
@@ -480,7 +486,7 @@ int main(int argc,char * argv[]) {
 		//cout<<"\nMODULARIDADE: "<<mod;
 
 
-		float dens = 0.0;
+		dens = 0.0;
 		float e, d;
 
 		for (unsigned c=0;c<comms.size();c++){
@@ -512,7 +518,7 @@ int main(int argc,char * argv[]) {
 		//storing the data
 
 
-		string instance = "";
+		instance = "";
 		bool passedExtension = false;
 
 		for (int i=ioparm.filename.size()-1;i>=0; i--){
@@ -526,25 +532,6 @@ int main(int argc,char * argv[]) {
 				}
 			}
 		}
-
-		long long int totalTime, searchTime, bestTime;
-		totalTime = (((float)stop - (float)startMain) / CLOCKS_PER_SEC ) * 1000;
-		searchTime = (((float)stop - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
-		bestTime = (((float)stopBest - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
-
-		string expFile="cnm"+instance+"_"+exp;
-		ofstream f(expFile.c_str(), ios::app);
-		//ofstream fout(ioparm.f_parm.c_str(), ios::app);
-		f<<instance<<","<<gparm.n<<","<<gparm.m<<","
-			   <<exp<<","
-			   <<t<<","<<Qmax.x<<","
-			   <<opt<<","<< dens << "," << mod <<","
-			   <<numberCom<<","
-			   <<t<<","<<Qmax.x<<","
-			   <<totalTime<<","<<searchTime<<","<<bestTime
-			   <<"\n";
-		f.close();
-		
 		comms.clear();
 
 
@@ -653,14 +640,19 @@ int main(int argc,char * argv[]) {
 	cout << endl <<  "======================================= MODULARIDADE ==========================================" << endl;
 	cout << modAnt << endl << endl;
 	
+	vector <set <unsigned> > auxFinal;
+	
+	auxFinal = resFinal;
+	
 	for(int i=0; i< resFinal.size(); i++){
 		if(resFinal[i].size() > 0){
 			itComms = resFinal[i].begin();
 			while(itComms != resFinal[i].end()){
 				for(int j=0; j < resFinal.size(); j++){
-					if(resFinal[j].find(*itComms) == resFinal[j].end() && resFinal[j].size() > 0 && i != j){
+					if(auxFinal[j].find(*itComms) == auxFinal[j].end() && auxFinal[j].size() > 0 && i != j){
 						//Insere vértice na nova comunidade
-						resFinal[j].insert(*itComms);
+						auxFinal[i].erase(*itComms);
+						auxFinal[j].insert(*itComms);
 						
 						//Recalcula a modularidade
 						set<unsigned>::iterator ita, itb, itf;
@@ -668,16 +660,16 @@ int main(int argc,char * argv[]) {
 						bool counted;
 						float modAtu = 0.0;
 						
-						for (unsigned c=0;c<resFinal.size();c++){
+						for (unsigned c=0;c<auxFinal.size();c++){
 							counted = false;
-							ita = resFinal[c].begin();
-							while(ita!= resFinal[c].end()){
+							ita = auxFinal[c].begin();
+							while(ita!= auxFinal[c].end()){
 								if (counted == false){
 									counted = true;
 									numberCom++;
 								}
-								itb=resFinal[c].begin();
-								while(itb!= resFinal[c].end()){
+								itb=auxFinal[c].begin();
+								while(itb!= auxFinal[c].end()){
 									itf = MEIJ[*ita].find(*itb);
 									if (itf != MEIJ[*ita].end()){
 										modAtu += 1.0/(2.0*gparm.m);
@@ -689,13 +681,16 @@ int main(int argc,char * argv[]) {
 							}
 						}
 						
-						//cout << endl << endl << "MOD = " << modAnt << " > " << modAtu << endl << endl;
-						//cout << "VERTICE " << *itComms << " COMUNIDADE " << j;
+						cout << endl << endl << "MOD = " << modAnt << " > " << modAtu << endl << endl;
+						cout << "VERTICE " << *itComms << " COMUNIDADE " << j << " ANALISE " << i;
 						
 						//Se houve piora na modularidade retira o vértice recém inserido 
 						if (modAtu < modAnt){
-							resFinal[j].erase(*itComms);
+							auxFinal[j].erase(*itComms);
 						}
+						
+						auxFinal[i].insert(*itComms);
+						
 					}
 				}
 				
@@ -703,6 +698,8 @@ int main(int argc,char * argv[]) {
 			}
 		}
 	}
+	
+	resFinal = auxFinal;
 	
 	//Imprime todas as comunidades
 	for(int i=0; i<qtdExcucoes; i++){
@@ -734,6 +731,24 @@ int main(int argc,char * argv[]) {
 			}
 		}
 	}
+	
+		long long int totalTime, searchTime, bestTime;
+		totalTime = (((float)stop - (float)startMain) / CLOCKS_PER_SEC ) * 1000;
+		searchTime = (((float)stop - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
+		bestTime = (((float)stopBest - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
+
+		string expFile="cnm"+instance+"_"+exp;
+		ofstream f(expFile.c_str(), ios::app);
+		//ofstream fout(ioparm.f_parm.c_str(), ios::app);
+		f<<instance<<","<<gparm.n<<","<<gparm.m<<","
+			   <<exp<<","
+			   <<t<<","<<Qmax.x<<","
+			   <<opt<<","<< dens << "," << mod <<","
+			   <<numberCom<<","
+			   <<t<<","<<Qmax.x<<","
+			   <<totalTime<<","<<searchTime<<","<<bestTime
+			   <<"\n";
+		f.close();
 	
 	return 1;
 }
