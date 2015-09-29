@@ -431,8 +431,6 @@ int main(int argc,char * argv[]) {
 			t++;									// increment time
 		} // ------------- end community merging loop
 
-		stop = clock();
-
 		cout << "Q["<<t-1<<"] = "<<Q[t-1] << endl;
 		
 		// ----------------------------------------------------------------------
@@ -647,6 +645,7 @@ int main(int argc,char * argv[]) {
 	cout << modAnt << endl << endl;
 	
 	vector <set <unsigned> > auxFinal;
+	set <unsigned> testados; 
 	
 	auxFinal = resFinal;
 	
@@ -654,52 +653,57 @@ int main(int argc,char * argv[]) {
 		if(resFinal[i].size() > 0){
 			itComms = resFinal[i].begin();
 			while(itComms != resFinal[i].end()){
-				for(int j=0; j < resFinal.size(); j++){
-					if(auxFinal[j].find(*itComms) == auxFinal[j].end() && auxFinal[j].size() > 0 && i != j){
-						//Insere vértice na nova comunidade
-						auxFinal[i].erase(*itComms);
-						auxFinal[j].insert(*itComms);
-						
-						//Recalcula a modularidade
-						set<unsigned>::iterator ita, itb, itf;
-						unsigned numberCom = 0;
-						bool counted;
-						float modAtu = 0.0;
-						
-						for (unsigned c=0;c<auxFinal.size();c++){
-							counted = false;
-							ita = auxFinal[c].begin();
-							while(ita!= auxFinal[c].end()){
-								if (counted == false){
-									counted = true;
-									numberCom++;
-								}
-								itb=auxFinal[c].begin();
-								while(itb!= auxFinal[c].end()){
-									itf = MEIJ[*ita].find(*itb);
-									if (itf != MEIJ[*ita].end()){
-										modAtu += 1.0/(2.0*gparm.m);
+				if(testados.find(*itComms) == testados.end()){
+					for(int j=0; j < resFinal.size(); j++){
+						if(auxFinal[j].find(*itComms) == auxFinal[j].end() && auxFinal[j].size() > 0 && i != j){
+							//Insere vértice na nova comunidade
+							auxFinal[i].erase(*itComms);
+							auxFinal[j].insert(*itComms);
+							
+							cout << endl <<  "============= RECALCULAR MODULARIDADE ==============" <<endl << endl;
+							//Recalcula a modularidade
+							set<unsigned>::iterator ita, itb, itf;
+							unsigned numberCom = 0;
+							bool counted;
+							float modAtu = 0.0;
+							
+							for (unsigned c=0;c<auxFinal.size();c++){
+								counted = false;
+								ita = auxFinal[c].begin();
+								while(ita!= auxFinal[c].end()){
+									if (counted == false){
+										counted = true;
+										numberCom++;
 									}
-									modAtu-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
-									itb++;
+									itb=auxFinal[c].begin();
+									while(itb!= auxFinal[c].end()){
+										itf = MEIJ[*ita].find(*itb);
+										if (itf != MEIJ[*ita].end()){
+											modAtu += 1.0/(2.0*gparm.m);
+										}
+										modAtu-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
+										itb++;
+									}
+									ita++;
 								}
-								ita++;
+							}           
+							
+							cout << endl << endl << "MOD = " << modAnt << " > " << modAtu << endl << endl;
+							cout << "VERTICE " << *itComms << " COMUNIDADE " << j << " ANALISE " << i << "TESTE " << resFinal.size();
+							
+							//Se houve piora na modularidade retira o vértice recém inserido 
+							if (modAtu < modAnt){
+								auxFinal[j].erase(*itComms);
 							}
+							
+							
+							auxFinal[i].insert(*itComms);
+							
 						}
-						
-						//cout << endl << endl << "MOD = " << modAnt << " > " << modAtu << endl << endl;
-						//cout << "VERTICE " << *itComms << " COMUNIDADE " << j << " ANALISE " << i;
-						
-						//Se houve piora na modularidade retira o vértice recém inserido 
-						if (modAtu < modAnt){
-							auxFinal[j].erase(*itComms);
-						}
-						
-						auxFinal[i].insert(*itComms);
-						
 					}
+					cout << "INSERIDO " << *itComms << endl;
+					testados.insert(*itComms);
 				}
-				
 				itComms++;
 			}
 		}
@@ -725,6 +729,8 @@ int main(int argc,char * argv[]) {
 		}
 	}
 	
+	stop = clock();
+	
 	cout << "===================== RESULTADO FINAL ============================" << endl;
 	
 	for(int i=0; i< resFinal.size(); i++){
@@ -739,6 +745,7 @@ int main(int argc,char * argv[]) {
 	}
 	
 		long long int totalTime, searchTime, bestTime;
+		
 		totalTime = (((float)stop - (float)startMain) / CLOCKS_PER_SEC ) * 1000;
 		searchTime = (((float)stop - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
 		bestTime = (((float)stopBest - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
