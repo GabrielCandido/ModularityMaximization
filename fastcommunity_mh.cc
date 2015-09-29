@@ -335,10 +335,10 @@ int main(int argc,char * argv[]) {
 		int isupport, jsupport;
 		while (h->heapSize() > 2) {
 			
-			//if (numExecucao == 0){
-			//	dQmax = h->popMaximum();					// select maximum dQ_ij // convention: insert i into j
-			//}
-			//else{
+			if (numExecucao == 0){
+				dQmax = h->popMaximum();					// select maximum dQ_ij // convention: insert i into j
+			}
+			else{
 				// ---------------------------------
 				// Encontra o maior dQ 
 				int top = (h->heapSize() * fator_mod)+1;         // calcula a quantidade de pares a serem extraidos do heap;
@@ -358,7 +358,7 @@ int main(int argc,char * argv[]) {
 						dq[auxTuples[auxI].i].heap_ptr = h->insertItem(auxTuples[auxI]);
 					}
 				}
-			//}
+			}
 			
 			
 			if (dQmax.m < -4000000000.0) { break; }		// no more joins possible
@@ -455,6 +455,12 @@ int main(int argc,char * argv[]) {
 
 			comms[rec].insert(comms[sen].begin(), comms[sen].end());
 			comms[sen].clear();
+		}
+		
+		for(int i=0; i< comms.size(); i++){
+			if(comms[i].size() == 0){
+				comms.erase(comms.begin()+ i);
+			}
 		}
 			
 		resultados.push_back(comms);
@@ -563,7 +569,7 @@ int main(int argc,char * argv[]) {
 			for(int i=1; i< resultados.size(); i++){
 				itResultados = resultados[i].begin();
 				while(itResultados != resultados[i].end()){
-					//Se o vértice testado estiver nesta comunidade deste resultado navega verifica os vértices desta comunidade
+					//Se o vértice testado estiver nesta comunidade deste resultado verifica os vértices desta comunidade
 					if((*itResultados).find(*itCommsFinal) != (*itResultados).end()){
 					  itComms = (*itResultados).begin();
 					  while(itComms != (*itResultados).end()){
@@ -681,8 +687,8 @@ int main(int argc,char * argv[]) {
 							}
 						}
 						
-						cout << endl << endl << "MOD = " << modAnt << " > " << modAtu << endl << endl;
-						cout << "VERTICE " << *itComms << " COMUNIDADE " << j << " ANALISE " << i;
+						//cout << endl << endl << "MOD = " << modAnt << " > " << modAtu << endl << endl;
+						//cout << "VERTICE " << *itComms << " COMUNIDADE " << j << " ANALISE " << i;
 						
 						//Se houve piora na modularidade retira o vértice recém inserido 
 						if (modAtu < modAnt){
