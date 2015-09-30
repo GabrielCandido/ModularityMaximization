@@ -653,57 +653,56 @@ int main(int argc,char * argv[]) {
 		if(resFinal[i].size() > 0){
 			itComms = resFinal[i].begin();
 			while(itComms != resFinal[i].end()){
-				if(testados.find(*itComms) == testados.end()){
-					for(int j=0; j < resFinal.size(); j++){
-						if(auxFinal[j].find(*itComms) == auxFinal[j].end() && auxFinal[j].size() > 0 && i != j){
-							//Insere vértice na nova comunidade
-							auxFinal[i].erase(*itComms);
-							auxFinal[j].insert(*itComms);
-							
-							cout << endl <<  "============= RECALCULAR MODULARIDADE ==============" <<endl << endl;
-							//Recalcula a modularidade
-							set<unsigned>::iterator ita, itb, itf;
-							unsigned numberCom = 0;
-							bool counted;
-							float modAtu = 0.0;
-							
-							for (unsigned c=0;c<auxFinal.size();c++){
-								counted = false;
-								ita = auxFinal[c].begin();
-								while(ita!= auxFinal[c].end()){
-									if (counted == false){
-										counted = true;
-										numberCom++;
-									}
-									itb=auxFinal[c].begin();
-									while(itb!= auxFinal[c].end()){
-										itf = MEIJ[*ita].find(*itb);
-										if (itf != MEIJ[*ita].end()){
-											modAtu += 1.0/(2.0*gparm.m);
-										}
-										modAtu-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
-										itb++;
-									}
-									ita++;
-								}
-							}           
-							
-							cout << endl << endl << "MOD = " << modAnt << " > " << modAtu << endl << endl;
-							cout << "VERTICE " << *itComms << " COMUNIDADE " << j << " ANALISE " << i << "TESTE " << resFinal.size();
-							
-							//Se houve piora na modularidade retira o vértice recém inserido 
-							if (modAtu < modAnt){
-								auxFinal[j].erase(*itComms);
+				// Calcula a perda na modularidade para a saída deste vértice da comunidade
+				set<unsigned>::iterator itModularidade;
+				float perdaModularidade = 0.0;
+				
+				itModularidade= auxFinal[i].begin();
+				while(itModularidade != auxFinal[i].end()){
+					if(MEIJ[*itComms].find(*itModularidade) != MEIJ[*itComms].end()){
+						perdaModularidade += 1 - ((DEIJ[*itComms] * DEIJ[*itModularidade])/ (2 * gparm.m));
+					}
+					else{
+						perdaModularidade += 0 - ((DEIJ[*itComms] * DEIJ[*itModularidade])/ (2 * gparm.m));
+				
+					}
+					itModularidade++;
+				}
+				
+				
+			
+				for(int j=0; j < resFinal.size(); j++){
+					if(auxFinal[j].find(*itComms) == auxFinal[j].end() && auxFinal[j].size() > 0 && i != j){
+						//Calcula o ganho da modularidade
+						
+						set<unsigned>:: iterator itGanho;
+						float ganhoModularidade = 0.0;
+						
+						itGanho = auxFinal[j].begin();
+						while(itGanho != auxFinal[j].end()){
+							if(MEIJ[*itComms].find(*itGanho) != MEIJ[*itComms].end()){
+								ganhoModularidade += 1 - ((DEIJ[*itComms] * DEIJ[*itGanho])/ (2 * gparm.m)); 
+							}
+							else{
+								ganhoModularidade += 0 - ((DEIJ[*itComms] * DEIJ[*itGanho])/ (2 * gparm.m)); 
+						
 							}
 							
-							
-							auxFinal[i].insert(*itComms);
-							
+							itGanho++;
 						}
+						
+						ganhoModularidade = (perdaModularidade - ganhoModularidade) / (2 * gparm.m) ;
+
+						cout<< "VERTICE: " << *itComms << " COMUNIDADE " << j << " Ganho Modularidade " << ganhoModularidade << " Perda Modlaridade " << perdaModularidade << " TAMANHOS " << resFinal[j].size();		
+						//Se houve melhora na modularidade insere o vértice 
+						if (ganhoModularidade >= 0){
+							auxFinal[j].insert(*itComms);
+						}
+						
+						cout<< " tamanho 2 " << resFinal[j].size() << endl; 
 					}
-					cout << "INSERIDO " << *itComms << endl;
-					testados.insert(*itComms);
 				}
+		
 				itComms++;
 			}
 		}
