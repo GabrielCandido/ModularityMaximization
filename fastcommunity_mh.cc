@@ -693,13 +693,13 @@ int main(int argc,char * argv[]) {
 						
 						ganhoModularidade = (perdaModularidade - ganhoModularidade) / (2 * gparm.m) ;
 
-						cout<< "VERTICE: " << *itComms << " COMUNIDADE " << j << " Ganho Modularidade " << ganhoModularidade << " Perda Modlaridade " << perdaModularidade << " TAMANHOS " << resFinal[j].size();		
+						//cout<< "VERTICE: " << *itComms << " COMUNIDADE " << j << " Ganho Modularidade " << ganhoModularidade << " Perda Modlaridade " << perdaModularidade << " TAMANHOS " << resFinal[j].size();		
 						//Se houve melhora na modularidade insere o vértice 
 						if (ganhoModularidade >= 0){
 							auxFinal[j].insert(*itComms);
 						}
 						
-						cout<< " tamanho 2 " << resFinal[j].size() << endl; 
+						//cout<< " tamanho 2 " << resFinal[j].size() << endl; 
 					}
 				}
 		
