@@ -255,7 +255,18 @@ int main(int argc,char * argv[]) {
 
     string opt = argv[3];
     string exp = argv[4];
-	int qtdExcucoes = atoi(argv[5]);
+	int qtdExecucoes = (atof(argv[5]) * 20);
+	
+	cout << "TESTTE  " << qtdExecucoes;
+	
+	if(qtdExecucoes == 0){
+		qtdExecucoes = 1;
+	}
+	if(qtdExecucoes > 20){
+		cout << "MAXIMO DE 20 EXECUCOES PERMITIDAS -- Executando 20 vezes";
+		qtdExecucoes = 20;
+	}
+	
     argc -= 2;
 	//int qtdExcucoes = 1;
 
@@ -275,15 +286,20 @@ int main(int argc,char * argv[]) {
 	ioparm.textFlag  = 0;
 	ioparm.filename  = "community.pairs";
 	ioparm.s_label   = "a";
-	double fator_mod = 0.20; //Relaxamento da modularidade
+	double fator_mod = atof(argv[6]); //Relaxamento da modularidade
 	time_t t1;	t1 = time(&t1);
 	time_t t2;	t2 = time(&t2);
 	
+	cout<< endl << "FATOR MOD " << fator_mod; 
+	
 	srand(time (NULL)); //Semente para escolher aleatoriamente o condidato a união
 	
-	vector<vector <set <unsigned> > > resultados;
 	
-	for(int numExecucao=0; numExecucao<qtdExcucoes; numExecucao++){
+	vector<vector <set <unsigned> > > resultados;
+	cout << qtdExecucoes; 
+	for(int numExecucao=0; numExecucao < qtdExecucoes; numExecucao++){
+		cout << endl << "INICIO DA EXECUCAO" << endl;
+		
 		// ----------------------------------------------------------------------
 		// Parse the command line, build filenames and then import the .pairs file
 		//cout << "\nFast Community Inference.\n";
@@ -292,7 +308,7 @@ int main(int argc,char * argv[]) {
 		//cout << "\nimporting: " << ioparm.filename << endl;    // note the input filename
 		buildFilenames();								// builds filename strings
 		readInputFile();								// gets adjacency matrix data
-		
+		cout << endl << "INICIO DA EXECUCAO" << endl;
 		// ----------------------------------------------------------------------
 		// Allocate data structures for main loop
 		a     = new double [gparm.maxid];
@@ -318,7 +334,7 @@ int main(int argc,char * argv[]) {
 			//fsupp << 0 << "\t" << supportTot << "\t" << supportAve << "\t" << 0 << "\t->\t" << 0 << "\n";
 			//fsupp.close();
 		}
-	
+		
 		//Define Vetor de comunidades
 		vector< set<unsigned> > comms (gparm.n);
 		for (unsigned c=0;c<comms.size();c++){
@@ -327,7 +343,7 @@ int main(int argc,char * argv[]) {
 		
 		// ----------------------------------------------------------------------
 		// Start FastCommunity algorithm
-
+	    
 		startSearch = clock();
 		stopBest  = clock();
 		tuple  dQmax, dQnew;
@@ -460,10 +476,12 @@ int main(int argc,char * argv[]) {
 				comms.erase(comms.begin()+ i);
 			}
 		}
+		
+		cout << "Comunidades Vazias limpas";
 			
 		resultados.push_back(comms);
 
-		unsigned numberCom = 0;
+		/*unsigned numberCom = 0;
 		bool counted;
 		mod = 0.0;
 		for (unsigned c=0;c<comms.size();c++){
@@ -485,12 +503,10 @@ int main(int argc,char * argv[]) {
 				}
 				ita++;
 			}
-		}
+		} */
 
-		//cout<<"\nMODULARIDADE: "<<mod;
-
-
-		dens = 0.0;
+		
+		/*dens = 0.0;
 		float e, d;
 
 		for (unsigned c=0;c<comms.size();c++){
@@ -513,7 +529,7 @@ int main(int argc,char * argv[]) {
 				dens += (2.0*e-d)/comms[c].size();
 			}
 
-		}
+		} */
 
 		//cout<<"\ndensidade: "<<dens;
 
@@ -559,189 +575,159 @@ int main(int argc,char * argv[]) {
 	resFinal = resultados[0];	
 	itFinal = resultados[0].begin();	
 	
-	//Navega entre os vértices da solução inicial
-	while(itFinal != resultados[0].end()){
-		itCommsFinal = (*itFinal).begin();
-		while(itCommsFinal != (*itFinal).end()){
-			//Busca nos demais resultados a comunidade em que o vértice foi alocado
-			for(int i=1; i< resultados.size(); i++){
-				itResultados = resultados[i].begin();
-				while(itResultados != resultados[i].end()){
-					//Se o vértice testado estiver nesta comunidade deste resultado verifica os vértices desta comunidade
-					if((*itResultados).find(*itCommsFinal) != (*itResultados).end()){
-					  itComms = (*itResultados).begin();
-					  while(itComms != (*itResultados).end()){
-						//Se o vertice da comunidade for diferente do testado e não estiver na comunidade original procura em qual comunidade está
-						if(*itComms != *itCommsFinal && (*itFinal).find(*itComms) == (*itFinal).end()){
-							for(int j=0; j<resFinal.size(); j++){
-							    //Se encontrou a comundade em que o vértice adjacente está E o vértice atual ainda não está nesta comunidade procegue para adicionar
-								if(((resultados[0])[j]).find(*itComms) != ((resultados[0])[j]).end() && resFinal[j].find(*itCommsFinal) == (resFinal[j]).end() && (*itFinal).find(*itComms) == (*itFinal).end()){
-									int qtdOriginal = 0, qtdNova = 0;
-									
-									set <unsigned>::iterator itCommAtu;
-									itCommAtu = (*itResultados).begin();
-									//Verifica se a maioria dos vértices da comunidade no resultado final checada estão na comunidade do resultado que está sendo analisado
-									while(itCommAtu != (*itResultados).end()){
-										if(resFinal[j].find((*itCommAtu)) != resFinal[j].end()){
-											qtdOriginal++;
+	if(qtdExecucoes > 1){
+		//Navega entre os vértices da solução inicial
+		while(itFinal != resultados[0].end()){
+			itCommsFinal = (*itFinal).begin();
+			while(itCommsFinal != (*itFinal).end()){
+				//Busca nos demais resultados a comunidade em que o vértice foi alocado
+				for(int i=1; i< resultados.size(); i++){
+					itResultados = resultados[i].begin();
+					while(itResultados != resultados[i].end()){
+						//Se o vértice testado estiver nesta comunidade deste resultado verifica os vértices desta comunidade
+						if((*itResultados).find(*itCommsFinal) != (*itResultados).end()){
+						  itComms = (*itResultados).begin();
+						  while(itComms != (*itResultados).end()){
+							//Se o vertice da comunidade for diferente do testado e não estiver na comunidade original procura em qual comunidade está
+							if(*itComms != *itCommsFinal && (*itFinal).find(*itComms) == (*itFinal).end()){
+								for(int j=0; j<resFinal.size(); j++){
+									//Se encontrou a comundade em que o vértice adjacente está E o vértice atual ainda não está nesta comunidade procegue para adicionar
+									if(((resultados[0])[j]).find(*itComms) != ((resultados[0])[j]).end() && resFinal[j].find(*itCommsFinal) == (resFinal[j]).end() && (*itFinal).find(*itComms) == (*itFinal).end()){
+										int qtdOriginal = 0, qtdNova = 0;
+										
+										set <unsigned>::iterator itCommAtu;
+										itCommAtu = (*itResultados).begin();
+										//Verifica se a maioria dos vértices da comunidade no resultado final checada estão na comunidade do resultado que está sendo analisado
+										while(itCommAtu != (*itResultados).end()){
+											if(resFinal[j].find((*itCommAtu)) != resFinal[j].end()){
+												qtdOriginal++;
+											}
+											else{
+												qtdNova ++;
+											}
+											itCommAtu++;
 										}
-										else{
-											qtdNova ++;
+										
+										//Se a maioria dos vértices estiver na comunidade
+										if(qtdOriginal > qtdNova){
+											resFinal[j].insert(*itCommsFinal);
 										}
-										itCommAtu++;
-									}
-									
-									//Se a maioria dos vértices estiver na comunidade
-									if(qtdOriginal > qtdNova){
-										resFinal[j].insert(*itCommsFinal);
+										
 									}
 									
 								}
-								
-							}
-						}						
-						itComms++;
-					  }
+							}						
+							itComms++;
+						  }
+						}
+						itResultados++;
 					}
-					itResultados++;
 				}
+				itCommsFinal++;
 			}
-			itCommsFinal++;
+			itFinal++;
 		}
-		itFinal++;
 	}
-	
 	// -------------------------------------------------------------------------- //
 	// ---------------------------- Troca de Comunidades ------------------------ //
 	// -------------------------------------------------------------------------- //
-	
-	set<unsigned>::iterator ita, itb, itf;
-	unsigned numberCom = 0;
-	bool counted;
-	float modAnt = 0.0;
-	
-	for (unsigned c=0;c<resFinal.size();c++){
-		counted = false;
-		ita = resFinal[c].begin();
-		while(ita!= resFinal[c].end()){
-			if (counted == false){
-				counted = true;
-				numberCom++;
-			}
-			itb=resFinal[c].begin();
-			while(itb!= resFinal[c].end()){
-				itf = MEIJ[*ita].find(*itb);
-				if (itf != MEIJ[*ita].end()){
-					modAnt+= 1.0/(2.0*gparm.m);
+	if(qtdExecucoes < 20){
+		set<unsigned>::iterator ita, itb, itf;
+		unsigned numberCom = 0;
+		bool counted;
+		float modAnt = 0.0;
+		
+		cout << "Cálculo MODULARIDADE" ;
+		for (unsigned c=0;c<resFinal.size();c++){
+			counted = false;
+			ita = resFinal[c].begin();
+			while(ita!= resFinal[c].end()){
+				if (counted == false){
+					counted = true;
+					numberCom++;
 				}
-				modAnt-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
-				itb++;
+				itb=resFinal[c].begin();
+				while(itb!= resFinal[c].end()){
+					itf = MEIJ[*ita].find(*itb);
+					if (itf != MEIJ[*ita].end()){
+						modAnt+= 1.0/(2.0*gparm.m);
+					}
+					modAnt-= (DEIJ[*ita]*DEIJ[*itb])/(4.0*gparm.m*gparm.m);
+					itb++;
+				}
+				ita++;
 			}
-			ita++;
 		}
-	}
-	
-	cout << endl <<  "======================================= MODULARIDADE ==========================================" << endl;
-	cout << modAnt << endl << endl;
-	
-	vector <set <unsigned> > auxFinal;
-	set <unsigned> testados; 
-	
-	auxFinal = resFinal;
-	
-	for(int i=0; i< resFinal.size(); i++){
-		if(resFinal[i].size() > 0){
-			itComms = resFinal[i].begin();
-			while(itComms != resFinal[i].end()){
-				// Calcula a perda na modularidade para a saída deste vértice da comunidade
-				set<unsigned>::iterator itModularidade;
-				float perdaModularidade = 0.0;
-				
-				itModularidade= auxFinal[i].begin();
-				while(itModularidade != auxFinal[i].end()){
-					if(MEIJ[*itComms].find(*itModularidade) != MEIJ[*itComms].end()){
-						perdaModularidade += 1 - ((DEIJ[*itComms] * DEIJ[*itModularidade])/ (2 * gparm.m));
-					}
-					else{
-						perdaModularidade += 0 - ((DEIJ[*itComms] * DEIJ[*itModularidade])/ (2 * gparm.m));
-				
-					}
-					itModularidade++;
-				}
-				
-				
 			
-				for(int j=0; j < resFinal.size(); j++){
-					if(auxFinal[j].find(*itComms) == auxFinal[j].end() && auxFinal[j].size() > 0 && i != j){
-						//Calcula o ganho da modularidade
-						
-						set<unsigned>:: iterator itGanho;
-						float ganhoModularidade = 0.0;
-						
-						itGanho = auxFinal[j].begin();
-						while(itGanho != auxFinal[j].end()){
-							if(MEIJ[*itComms].find(*itGanho) != MEIJ[*itComms].end()){
-								ganhoModularidade += 1 - ((DEIJ[*itComms] * DEIJ[*itGanho])/ (2 * gparm.m)); 
-							}
-							else{
-								ganhoModularidade += 0 - ((DEIJ[*itComms] * DEIJ[*itGanho])/ (2 * gparm.m)); 
-						
+		vector <set <unsigned> > auxFinal;
+		set <unsigned> testados; 
+		
+		auxFinal = resFinal;
+		
+		for(int i=0; i< resFinal.size(); i++){
+			if(resFinal[i].size() > 0){
+				itComms = resFinal[i].begin();
+				while(itComms != resFinal[i].end()){
+					// Calcula a perda na modularidade para a saída deste vértice da comunidade
+					set<unsigned>::iterator itModularidade;
+					float perdaModularidade = 0.0;
+					
+					itModularidade= auxFinal[i].begin();
+					while(itModularidade != auxFinal[i].end()){
+						if(MEIJ[*itComms].find(*itModularidade) != MEIJ[*itComms].end()){
+							perdaModularidade += 1 - ((DEIJ[*itComms] * DEIJ[*itModularidade])/ (2 * gparm.m));
+						}
+						else{
+							perdaModularidade += 0 - ((DEIJ[*itComms] * DEIJ[*itModularidade])/ (2 * gparm.m));
+					
+						}
+						itModularidade++;
+					}
+					
+					
+				
+					for(int j=0; j < resFinal.size(); j++){
+						if(auxFinal[j].find(*itComms) == auxFinal[j].end() && auxFinal[j].size() > 0 && i != j){
+							//Calcula o ganho da modularidade
+							
+							set<unsigned>:: iterator itGanho;
+							float ganhoModularidade = 0.0;
+							
+							itGanho = auxFinal[j].begin();
+							while(itGanho != auxFinal[j].end()){
+								if(MEIJ[*itComms].find(*itGanho) != MEIJ[*itComms].end()){
+									ganhoModularidade += 1 - ((DEIJ[*itComms] * DEIJ[*itGanho])/ (2 * gparm.m)); 
+								}
+								else{
+									ganhoModularidade += 0 - ((DEIJ[*itComms] * DEIJ[*itGanho])/ (2 * gparm.m)); 
+							
+								}
+								
+								itGanho++;
 							}
 							
-							itGanho++;
-						}
-						
-						ganhoModularidade = (perdaModularidade - ganhoModularidade) / (2 * gparm.m) ;
+							ganhoModularidade = (perdaModularidade - ganhoModularidade) / (2 * gparm.m) ;
 
-						//cout<< "VERTICE: " << *itComms << " COMUNIDADE " << j << " Ganho Modularidade " << ganhoModularidade << " Perda Modlaridade " << perdaModularidade << " TAMANHOS " << resFinal[j].size();		
-						//Se houve melhora na modularidade insere o vértice 
-						if (ganhoModularidade >= 0){
-							auxFinal[j].insert(*itComms);
+							//cout<< "VERTICE: " << *itComms << " COMUNIDADE " << j << " Ganho Modularidade " << ganhoModularidade << " Perda Modlaridade " << perdaModularidade << " TAMANHOS " << resFinal[j].size();		
+							//Se houve melhora na modularidade insere o vértice 
+							if (ganhoModularidade >= 0){
+								auxFinal[j].insert(*itComms);
+							}
+							
+							//cout<< " tamanho 2 " << resFinal[j].size() << endl; 
 						}
-						
-						//cout<< " tamanho 2 " << resFinal[j].size() << endl; 
 					}
-				}
-		
-				itComms++;
-			}
-		}
-	}
-	
-	resFinal = auxFinal;
-	
-	//Imprime todas as comunidades
-	for(int i=0; i<qtdExcucoes; i++){
-		itResultados = resultados[i].begin();
-		cout << endl << "RESULTADO " << i + 1 << endl;
-		while(itResultados != resultados[i].end()){
-				itComms = (*itResultados).begin();
-				if((*itResultados).size() > 0){
-					cout << "COMUNIDADE!!" << endl;	
-				}
-				
-				while(itComms != (*itResultados).end()){
-					cout << *itComms << endl;	
+			
 					itComms++;
 				}
-				itResultados++;
+			}
 		}
+		
+		resFinal = auxFinal;
 	}
-	
 	stop = clock();
 	
 	cout << "===================== RESULTADO FINAL ============================" << endl;
-	
-	for(int i=0; i< resFinal.size(); i++){
-		if(resFinal[i].size() > 0){
-			cout<< "COMUNIDADE" << i << endl;
-			itComms = resFinal[i].begin();
-			while(itComms != resFinal[i].end()){
-				cout << *itComms << endl;
-				itComms++;
-			}
-		}
-	}
 	
 		long long int totalTime, searchTime, bestTime;
 		
@@ -749,17 +735,35 @@ int main(int argc,char * argv[]) {
 		searchTime = (((float)stop - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
 		bestTime = (((float)stopBest - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
 
-		string expFile="cnm"+instance+"_"+exp;
+		string expFile="CNM_results_"+instance+"_"+exp+"_"+argv[5]+"_"+argv[6];
 		ofstream f(expFile.c_str(), ios::app);
 		//ofstream fout(ioparm.f_parm.c_str(), ios::app);
-		f<<instance<<","<<gparm.n<<","<<gparm.m<<","
+		f<< "CNM,"<<instance<<","<<gparm.n<<","<<gparm.m<<"," /*
 			   <<exp<<","
 			   <<t<<","<<Qmax.x<<","
 			   <<opt<<","<< dens << "," << mod <<","
 			   <<numberCom<<","
-			   <<t<<","<<Qmax.x<<","
-			   <<totalTime<<","<<searchTime<<","<<bestTime
-			   <<"\n";
+			   <<t<<","<<Qmax.x<<"," */  
+			   <<totalTime <<"," << resFinal.size() << ",";
+			for(int i=0; i< resFinal.size(); i++){
+				if(resFinal[i].size() > 0){
+					f<<"[";
+					itComms = resFinal[i].begin();
+					while(itComms != resFinal[i].end()){
+						f << *itComms;
+						itComms++;
+						if(itComms != resFinal[i].end()){
+							f<< ",";
+						}
+					}
+					f<<"]";
+					
+					if(i+1 < resFinal.size()){
+						f<<",";
+					}
+				}
+			}
+		
 		f.close();
 	
 	return 1;
