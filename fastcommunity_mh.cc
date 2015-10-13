@@ -257,7 +257,7 @@ int main(int argc,char * argv[]) {
     string exp = argv[4];
 	int qtdExecucoes = (atof(argv[5]) * 20);
 	
-	cout << "TESTTE  " << qtdExecucoes;
+	//cout << "TESTTE  " << qtdExecucoes;
 	
 	if(qtdExecucoes == 0){
 		qtdExecucoes = 1;
@@ -290,15 +290,15 @@ int main(int argc,char * argv[]) {
 	time_t t1;	t1 = time(&t1);
 	time_t t2;	t2 = time(&t2);
 	
-	cout<< endl << "FATOR MOD " << fator_mod; 
+	//cout<< endl << "FATOR MOD " << fator_mod; 
 	
 	srand(time (NULL)); //Semente para escolher aleatoriamente o condidato a união
 	
 	
 	vector<vector <set <unsigned> > > resultados;
-	cout << qtdExecucoes; 
+	//cout << qtdExecucoes; 
 	for(int numExecucao=0; numExecucao < qtdExecucoes; numExecucao++){
-		cout << endl << "INICIO DA EXECUCAO" << endl;
+		//cout << endl << "INICIO DA EXECUCAO" << endl;
 		
 		// ----------------------------------------------------------------------
 		// Parse the command line, build filenames and then import the .pairs file
@@ -308,7 +308,7 @@ int main(int argc,char * argv[]) {
 		//cout << "\nimporting: " << ioparm.filename << endl;    // note the input filename
 		buildFilenames();								// builds filename strings
 		readInputFile();								// gets adjacency matrix data
-		cout << endl << "INICIO DA EXECUCAO" << endl;
+		//cout << endl << "INICIO DA EXECUCAO" << endl;
 		// ----------------------------------------------------------------------
 		// Allocate data structures for main loop
 		a     = new double [gparm.maxid];
@@ -447,16 +447,16 @@ int main(int argc,char * argv[]) {
 			t++;									// increment time
 		} // ------------- end community merging loop
 
-		cout << "Q["<<t-1<<"] = "<<Q[t-1] << endl;
+		//cout << "Q["<<t-1<<"] = "<<Q[t-1] << endl;
 		
 		// ----------------------------------------------------------------------
 		// Record some results
 		t1 = time(&t1);
 		//ofstream fout(ioparm.f_parm.c_str(), ios::app);
-		cout << "---MODULARITY---\n";
-		cout << "MAXQ------:\t" << Qmax.y  << "\n";
-		cout << "STEP------:\t" << Qmax.x  << "\n";
-		cout << "EXIT------:\t" << asctime(localtime(&t1));
+		//cout << "---MODULARITY---\n";
+		//cout << "MAXQ------:\t" << Qmax.y  << "\n";
+		//cout << "STEP------:\t" << Qmax.x  << "\n";
+		//cout << "EXIT------:\t" << asctime(localtime(&t1));
 		//fout.close();
 
 		//cout<<"\naaa: "<<joins[Qmax.x-1].x<<","<<joins[Qmax.x-1].y;
@@ -477,7 +477,7 @@ int main(int argc,char * argv[]) {
 			}
 		}
 		
-		cout << "Comunidades Vazias limpas";
+		//cout << "Comunidades Vazias limpas";
 			
 		resultados.push_back(comms);
 
@@ -637,7 +637,7 @@ int main(int argc,char * argv[]) {
 		bool counted;
 		float modAnt = 0.0;
 		
-		cout << "Cálculo MODULARIDADE" ;
+		//cout << "Cálculo MODULARIDADE" ;
 		for (unsigned c=0;c<resFinal.size();c++){
 			counted = false;
 			ita = resFinal[c].begin();
@@ -686,15 +686,15 @@ int main(int argc,char * argv[]) {
 					
 					
 				
-					for(int j=0; j < resFinal.size(); j++){
+					for(int j=0+1; j < resFinal.size(); j++){
 						if(auxFinal[j].find(*itComms) == auxFinal[j].end() && auxFinal[j].size() > 0 && i != j){
 							//Calcula o ganho da modularidade
 							
 							set<unsigned>:: iterator itGanho;
 							float ganhoModularidade = 0.0;
 							
-							itGanho = auxFinal[j].begin();
-							while(itGanho != auxFinal[j].end()){
+							itGanho = resFinal[j].begin();
+							while(itGanho != resFinal[j].end()){
 								if(MEIJ[*itComms].find(*itGanho) != MEIJ[*itComms].end()){
 									ganhoModularidade += 1 - ((DEIJ[*itComms] * DEIJ[*itGanho])/ (2 * gparm.m)); 
 								}
@@ -706,11 +706,11 @@ int main(int argc,char * argv[]) {
 								itGanho++;
 							}
 							
-							ganhoModularidade = (perdaModularidade - ganhoModularidade) / (2 * gparm.m) ;
+							ganhoModularidade = (ganhoModularidade - perdaModularidade) / (2 * gparm.m) ;
 
 							//cout<< "VERTICE: " << *itComms << " COMUNIDADE " << j << " Ganho Modularidade " << ganhoModularidade << " Perda Modlaridade " << perdaModularidade << " TAMANHOS " << resFinal[j].size();		
 							//Se houve melhora na modularidade insere o vértice 
-							if (ganhoModularidade >= 0){
+							if (ganhoModularidade > 0.0){
 								auxFinal[j].insert(*itComms);
 							}
 							
@@ -727,15 +727,29 @@ int main(int argc,char * argv[]) {
 	}
 	stop = clock();
 	
-	cout << "===================== RESULTADO FINAL ============================" << endl;
+	//cout << "===================== RESULTADO FINAL ============================" << endl;
 	
 		long long int totalTime, searchTime, bestTime;
 		
 		totalTime = (((float)stop - (float)startMain) / CLOCKS_PER_SEC ) * 1000;
 		searchTime = (((float)stop - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
 		bestTime = (((float)stopBest - (float)startSearch) / CLOCKS_PER_SEC ) * 1000;
-
-		string expFile="CNM_results_"+instance+"_"+exp+"_"+argv[5]+"_"+argv[6];
+		
+		while (instance.find("\\") < instance.length()){
+			std::size_t pos = instance.find("\\");
+			pos = pos + 1;
+			instance = instance.substr(pos);
+		}
+		
+		int comunidades = 0;
+		for(int i=0; i<resFinal.size();i++){
+			if(resFinal[i].size() > 0){
+				comunidades++;
+			}
+		}
+		
+		//cout << instance;
+		string expFile="results\\CNM_results_"+instance+"_"+exp+"_"+argv[5]+"_"+argv[6];
 		ofstream f(expFile.c_str(), ios::app);
 		//ofstream fout(ioparm.f_parm.c_str(), ios::app);
 		f<< "CNM,"<<instance<<","<<gparm.n<<","<<gparm.m<<"," /*
@@ -744,7 +758,7 @@ int main(int argc,char * argv[]) {
 			   <<opt<<","<< dens << "," << mod <<","
 			   <<numberCom<<","
 			   <<t<<","<<Qmax.x<<"," */  
-			   <<totalTime <<"," << resFinal.size() << ",";
+			   <<totalTime <<"," << comunidades << ",(";
 			for(int i=0; i< resFinal.size(); i++){
 				if(resFinal[i].size() > 0){
 					f<<"[";
@@ -763,7 +777,7 @@ int main(int argc,char * argv[]) {
 					}
 				}
 			}
-		
+		f<<")\n";
 		f.close();
 	
 	return 1;
@@ -872,7 +886,7 @@ void buildFilenames() {
 	ioparm.f_group   = ioparm.d_out + ioparm.s_scratch + "-fc_"  + ioparm.s_label + ".groups";
 	ioparm.f_gstats  = ioparm.d_out + ioparm.s_scratch + "-fc_"  + ioparm.s_label + ".hist";
 	
-	if (true) { ofstream flog(ioparm.f_parm.c_str(), ios::trunc); flog.close(); }
+	if (true) { ofstream flog(ioparm.f_parm.c_str(), ios::trunc);flog.close(); }
 	time_t t; t = time(&t);
 	ofstream flog(ioparm.f_parm.c_str(), ios::app);
 	flog << "FASTCOMMUNITY_INFERENCE_ALGORITHM\n";
@@ -1377,7 +1391,7 @@ bool parseCommandLine(int argc,char * argv[]) {
 		else if (temp == "-v")		{    ioparm.textFlag = 1;		}
 		else if (temp == "--v")		{    ioparm.textFlag = 2;		}
 		else if (temp == "---v")		{    ioparm.textFlag = 3;		}
-		else {  cout << "Unknown commandline argument: " << argv[argct] << endl; }
+		else {  /*cout << "Unknown commandline argument: " << argv[argct] << endl;*/ }
 		argct++;
 	}
 		
